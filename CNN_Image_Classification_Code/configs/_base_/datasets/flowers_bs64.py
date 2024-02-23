@@ -35,7 +35,7 @@ data = dict(
     test=dict(
         # replace `data/val` with `data/test` for standard test
         type=dataset_type,
-        data_prefix='data/flowers/val',
-        ann_file='data/flowers/meta/val.txt',
+        data_prefix='data/flowers/test',
+        ann_file='data/flowers/meta/test.txt',
         pipeline=test_pipeline))
 evaluation = dict(interval=1, metric='accuracy')
