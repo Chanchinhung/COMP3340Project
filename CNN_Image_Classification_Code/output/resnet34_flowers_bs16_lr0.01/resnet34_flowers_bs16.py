@@ -41,7 +41,7 @@ test_pipeline = [
     dict(type='Collect', keys=['img'])
 ]
 data = dict(
-    samples_per_gpu=4,
+    samples_per_gpu=16,
     workers_per_gpu=1,
     train=dict(
         type='Flowers',
@@ -104,5 +104,5 @@ log_level = 'INFO'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]
-work_dir = 'output/resnet34_flowers_bs4_lr0.01'
+work_dir = 'output/resnet34_flowers_bs16_lr0.01'
 gpu_ids = range(0, 1)
