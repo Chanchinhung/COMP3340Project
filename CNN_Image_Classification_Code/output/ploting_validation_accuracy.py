@@ -51,7 +51,7 @@ def main():
             raise Exception('Max number of lines are 20')
     
     plt.legend()
-    plt.xlabel('Epoches')
+    plt.xlabel('Number of epoch')
     plt.ylabel('Validation accuracy')
     plt.savefig(str(args.output[:]))
     plt.show()
