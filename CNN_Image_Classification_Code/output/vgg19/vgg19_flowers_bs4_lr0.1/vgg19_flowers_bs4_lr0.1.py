@@ -1,12 +1,13 @@
 model = dict(
     type='ImageClassifier',
     backbone=dict(
-        type='VGG', depth=19, norm_cfg=dict(type='BN'), num_classes=17),
+        type='VGG',
+        depth=19,
+        norm_cfg=dict(type='BN', requires_grad=True),
+        num_classes=17),
     neck=None,
     head=dict(
-        type='ClsHead',
-        loss=dict(type='CrossEntropyLoss', loss_weight=1.0),
-        topk=(1, 5)))
+        type='ClsHead', loss=dict(type='CrossEntropyLoss', loss_weight=1.0)))
 dataset_type = 'Flowers'
 img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
