@@ -1,17 +1,11 @@
 model = dict(
     type='ImageClassifier',
-    backbone=dict(
-        type='ResNet',
-        depth=18,
-        num_stages=4,
-        out_indices=(3, ),
-        style='pytorch'),
-    neck=dict(type='GlobalAveragePooling'),
+    backbone=dict(type='VGG', depth=16, num_classes=17),
+    neck=None,
     head=dict(
-        type='LinearClsHead',
-        num_classes=17,
-        in_channels=512,
-        loss=dict(type='CrossEntropyLoss', loss_weight=1.0)))
+        type='ClsHead',
+        loss=dict(type='CrossEntropyLoss', loss_weight=1.0),
+        topk=(1, 5)))
 dataset_type = 'Flowers'
 img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
@@ -41,7 +35,7 @@ test_pipeline = [
     dict(type='Collect', keys=['img'])
 ]
 data = dict(
-    samples_per_gpu=64,
+    samples_per_gpu=4,
     workers_per_gpu=1,
     train=dict(
         type='Flowers',
@@ -78,8 +72,8 @@ data = dict(
         ]),
     test=dict(
         type='Flowers',
-        data_prefix='data/flowers/val',
-        ann_file='data/flowers/meta/val.txt',
+        data_prefix='data/flowers/test',
+        ann_file='data/flowers/meta/test.txt',
         pipeline=[
             dict(type='LoadImageFromFile'),
             dict(type='Resize', size=(256, -1)),
@@ -93,16 +87,16 @@ data = dict(
             dict(type='Collect', keys=['img'])
         ]))
 evaluation = dict(interval=1, metric='accuracy')
-optimizer = dict(type='SGD', lr=0.02, momentum=0.9, weight_decay=0.0001)
+optimizer = dict(type='SGD', lr=0.001, momentum=0.9, weight_decay=0.0001)
 optimizer_config = dict(grad_clip=None)
 lr_config = dict(policy='step', step=[100, 150])
 runner = dict(type='EpochBasedRunner', max_epochs=200)
-checkpoint_config = dict(interval=1)
+checkpoint_config = dict(interval=100)
 log_config = dict(interval=100, hooks=[dict(type='TextLoggerHook')])
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]
-work_dir = 'output/resnet18/lr0.02/resnet18_flowers_bs64'
+work_dir = 'output/vgg16/bs4/lr0.001'
 gpu_ids = range(0, 1)
