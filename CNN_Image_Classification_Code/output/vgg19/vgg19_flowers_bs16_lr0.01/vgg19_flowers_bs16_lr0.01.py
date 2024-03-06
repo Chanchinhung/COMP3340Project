@@ -13,7 +13,7 @@ img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
 train_pipeline = [
     dict(type='LoadImageFromFile'),
-    dict(type='RandomResizedCrop', size=224, backend='pillow'),
+    dict(type='RandomResizedCrop', size=224),
     dict(type='RandomFlip', flip_prob=0.5, direction='horizontal'),
     dict(
         type='Normalize',
@@ -26,7 +26,7 @@ train_pipeline = [
 ]
 test_pipeline = [
     dict(type='LoadImageFromFile'),
-    dict(type='Resize', size=(256, -1), backend='pillow'),
+    dict(type='Resize', size=(256, -1)),
     dict(type='CenterCrop', crop_size=224),
     dict(
         type='Normalize',
@@ -37,7 +37,7 @@ test_pipeline = [
     dict(type='Collect', keys=['img'])
 ]
 data = dict(
-    samples_per_gpu=4,
+    samples_per_gpu=16,
     workers_per_gpu=1,
     train=dict(
         type='Flowers',
@@ -45,7 +45,7 @@ data = dict(
         ann_file='data/flowers/meta/train.txt',
         pipeline=[
             dict(type='LoadImageFromFile'),
-            dict(type='RandomResizedCrop', size=224, backend='pillow'),
+            dict(type='RandomResizedCrop', size=224),
             dict(type='RandomFlip', flip_prob=0.5, direction='horizontal'),
             dict(
                 type='Normalize',
@@ -62,7 +62,7 @@ data = dict(
         ann_file='data/flowers/meta/val.txt',
         pipeline=[
             dict(type='LoadImageFromFile'),
-            dict(type='Resize', size=(256, -1), backend='pillow'),
+            dict(type='Resize', size=(256, -1)),
             dict(type='CenterCrop', crop_size=224),
             dict(
                 type='Normalize',
@@ -78,7 +78,7 @@ data = dict(
         ann_file='data/flowers/meta/test.txt',
         pipeline=[
             dict(type='LoadImageFromFile'),
-            dict(type='Resize', size=(256, -1), backend='pillow'),
+            dict(type='Resize', size=(256, -1)),
             dict(type='CenterCrop', crop_size=224),
             dict(
                 type='Normalize',
@@ -89,7 +89,7 @@ data = dict(
             dict(type='Collect', keys=['img'])
         ]))
 evaluation = dict(interval=1, metric='accuracy')
-optimizer = dict(type='SGD', lr=0.1, momentum=0.9, weight_decay=0.0001)
+optimizer = dict(type='SGD', lr=0.01, momentum=0.9, weight_decay=0.0001)
 optimizer_config = dict(grad_clip=None)
 lr_config = dict(policy='step', step=[100, 150])
 runner = dict(type='EpochBasedRunner', max_epochs=200)
@@ -100,5 +100,5 @@ log_level = 'INFO'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]
-work_dir = 'output/vgg19/vgg19_flowers_bs4_lr0.1'
+work_dir = 'output/vgg19/vgg19_flowers_bs16_lr0.01'
 gpu_ids = range(0, 1)
