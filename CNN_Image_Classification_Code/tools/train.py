@@ -8,6 +8,8 @@ import warnings
 
 import mmcv
 import torch
+from torch import cuda # added for solving cuda out of memory
+import gc #added for solving cuda out of memory
 from mmcv import Config, DictAction
 from mmcv.runner import get_dist_info, init_dist
 
@@ -178,4 +180,6 @@ def main():
 
 
 if __name__ == '__main__':
+    torch.cuda.empty_cache()#added for solving CUDA out of memory
+    gc.collect()
     main()
