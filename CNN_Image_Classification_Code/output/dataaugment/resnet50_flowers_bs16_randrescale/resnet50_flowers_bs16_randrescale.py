@@ -17,8 +17,9 @@ img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
 train_pipeline = [
     dict(type='LoadImageFromFile'),
-    dict(type='RandomRotate', rotate_prob=0.5, max_angle=15),
-    dict(type='RandomResizedCrop', size=224),
+    dict(
+        type='RandomResizedCrop', size=224, scale=(0.8, 1.2),
+        ratio=(0.9, 1.1)),
     dict(type='RandomFlip', flip_prob=0.5, direction='horizontal'),
     dict(
         type='Normalize',
@@ -50,8 +51,11 @@ data = dict(
         ann_file='data/flowers/meta/train.txt',
         pipeline=[
             dict(type='LoadImageFromFile'),
-            dict(type='RandomRotate', rotate_prob=0.5, max_angle=15),
-            dict(type='RandomResizedCrop', size=224),
+            dict(
+                type='RandomResizedCrop',
+                size=224,
+                scale=(0.8, 1.2),
+                ratio=(0.9, 1.1)),
             dict(type='RandomFlip', flip_prob=0.5, direction='horizontal'),
             dict(
                 type='Normalize',
@@ -106,5 +110,5 @@ log_level = 'INFO'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]
-work_dir = 'output/dataaugment/resnet50_flowers_bs16_randrotate'
+work_dir = 'output/dataaugment/resnet50_flowers_bs16_randrescale'
 gpu_ids = range(0, 1)
