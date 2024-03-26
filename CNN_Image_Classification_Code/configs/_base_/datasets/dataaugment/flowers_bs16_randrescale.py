@@ -4,7 +4,6 @@ img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
 train_pipeline = [
     dict(type='LoadImageFromFile'),
-    dict(type='RandomRotate', rotate_prob=0.5, max_angle=15),
     dict(type='RandomResizedCrop', size=224, scale=(0.8, 1.2), ratio=(0.9, 1.1)), #rescaling
     dict(type='RandomFlip', flip_prob=0.5, direction='horizontal'),
     dict(type='Normalize', **img_norm_cfg),
