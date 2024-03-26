@@ -5,7 +5,7 @@ img_norm_cfg = dict(
 train_pipeline = [
     dict(type='LoadImageFromFile'),
     dict(type='RandomRotate', rotate_prob=0.5, max_angle=15),
-    dict(type='RandomResizedCrop', size=224),
+    dict(type='RandomRescaledCrop', scale_range=(0.08, 1.0), size=224), #rescaling
     dict(type='RandomFlip', flip_prob=0.5, direction='horizontal'),
     dict(type='Normalize', **img_norm_cfg),
     dict(type='ImageToTensor', keys=['img']),
