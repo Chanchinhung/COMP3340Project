@@ -1,10 +1,13 @@
 # dataset settings
+from torchvision.transforms import RandomRotation
 dataset_type = 'Flowers'
 img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
 train_pipeline = [
     dict(type='LoadImageFromFile'),
-    dict(type='RandomRotate', rotate_prob=0.5, max_angle=15),
+    dict(type='RandomTransforms', transforms=[
+        RandomRotation(degrees=45),
+    ]),
     dict(type='RandomResizedCrop', size=224),
     dict(type='RandomFlip', flip_prob=0.5, direction='horizontal'),
     dict(type='Normalize', **img_norm_cfg),
