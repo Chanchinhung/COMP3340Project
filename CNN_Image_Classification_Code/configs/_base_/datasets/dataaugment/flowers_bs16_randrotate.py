@@ -6,7 +6,7 @@ img_norm_cfg = dict(
 train_pipeline = [
     dict(type='LoadImageFromFile'),
     dict(type='RandomTransforms', transforms=[
-        RandomRotation(degrees=45),
+        RandomRotation(degrees=15),
     ]),
     dict(type='RandomResizedCrop', size=224),
     dict(type='RandomFlip', flip_prob=0.5, direction='horizontal'),
