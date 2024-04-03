@@ -367,7 +367,7 @@ class InceptionAux(BaseModule):
         return x
 
 
-@MODELS.register_module()
+@BACKBONES.register_module()
 class InceptionV3(BaseBackbone):
     """Inception V3 backbone.
 
