@@ -1,0 +1,1240 @@
+2024-04-04 10:31:19,053 - mmcls - INFO - Environment info:
+------------------------------------------------------------
+sys.platform: linux
+Python: 3.7.16 (default, Jan 17 2023, 22:20:44) [GCC 11.2.0]
+CUDA available: True
+GPU 0: NVIDIA GeForce RTX 2080 Ti
+CUDA_HOME: /usr/local/cuda
+NVCC: Cuda compilation tools, release 11.8, V11.8.89
+GCC: gcc (Ubuntu 11.4.0-1ubuntu1~22.04) 11.4.0
+PyTorch: 1.7.1
+PyTorch compiling details: PyTorch built with:
+  - GCC 7.3
+  - C++ Version: 201402
+  - Intel(R) oneAPI Math Kernel Library Version 2021.4-Product Build 20210904 for Intel(R) 64 architecture applications
+  - Intel(R) MKL-DNN v1.6.0 (Git Hash 5ef631a030a6f73131c77892041042805a06064f)
+  - OpenMP 201511 (a.k.a. OpenMP 4.5)
+  - NNPACK is enabled
+  - CPU capability usage: AVX2
+  - CUDA Runtime 10.1
+  - NVCC architecture flags: -gencode;arch=compute_37,code=sm_37;-gencode;arch=compute_50,code=sm_50;-gencode;arch=compute_60,code=sm_60;-gencode;arch=compute_61,code=sm_61;-gencode;arch=compute_70,code=sm_70;-gencode;arch=compute_75,code=sm_75;-gencode;arch=compute_37,code=compute_37
+  - CuDNN 7.6.3
+  - Magma 2.5.2
+  - Build settings: BLAS=MKL, BUILD_TYPE=Release, CXX_FLAGS= -Wno-deprecated -fvisibility-inlines-hidden -DUSE_PTHREADPOOL -fopenmp -DNDEBUG -DUSE_FBGEMM -DUSE_QNNPACK -DUSE_PYTORCH_QNNPACK -DUSE_XNNPACK -DUSE_VULKAN_WRAPPER -O2 -fPIC -Wno-narrowing -Wall -Wextra -Werror=return-type -Wno-missing-field-initializers -Wno-type-limits -Wno-array-bounds -Wno-unknown-pragmas -Wno-sign-compare -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function -Wno-unused-result -Wno-unused-local-typedefs -Wno-strict-overflow -Wno-strict-aliasing -Wno-error=deprecated-declarations -Wno-stringop-overflow -Wno-psabi -Wno-error=pedantic -Wno-error=redundant-decls -Wno-error=old-style-cast -fdiagnostics-color=always -faligned-new -Wno-unused-but-set-variable -Wno-maybe-uninitialized -fno-math-errno -fno-trapping-math -Werror=format -Wno-stringop-overflow, PERF_WITH_AVX=1, PERF_WITH_AVX2=1, PERF_WITH_AVX512=1, USE_CUDA=ON, USE_EXCEPTION_PTR=1, USE_GFLAGS=OFF, USE_GLOG=OFF, USE_MKL=ON, USE_MKLDNN=ON, USE_MPI=OFF, USE_NCCL=ON, USE_NNPACK=ON, USE_OPENMP=ON, 
+
+TorchVision: 0.8.2
+OpenCV: 4.9.0
+MMCV: 1.5.0
+MMCV Compiler: n/a
+MMCV CUDA Compiler: n/a
+MMClassification: 0.15.0+96ebba7
+------------------------------------------------------------
+
+2024-04-04 10:31:19,054 - mmcls - INFO - Distributed training: False
+2024-04-04 10:31:19,174 - mmcls - INFO - Config:
+model = dict(
+    type='ImageClassifier',
+    backbone=dict(type='InceptionV3', num_classes=17, aux_logits=False),
+    neck=None,
+    head=dict(
+        type='ClsHead', loss=dict(type='CrossEntropyLoss', loss_weight=1.0)))
+dataset_type = 'Flowers'
+img_norm_cfg = dict(
+    mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
+train_pipeline = [
+    dict(type='LoadImageFromFile'),
+    dict(type='RandomResizedCrop', size=224),
+    dict(type='RandomFlip', flip_prob=0.5, direction='horizontal'),
+    dict(
+        type='Normalize',
+        mean=[123.675, 116.28, 103.53],
+        std=[58.395, 57.12, 57.375],
+        to_rgb=True),
+    dict(type='ImageToTensor', keys=['img']),
+    dict(type='ToTensor', keys=['gt_label']),
+    dict(type='Collect', keys=['img', 'gt_label'])
+]
+test_pipeline = [
+    dict(type='LoadImageFromFile'),
+    dict(type='Resize', size=(256, -1)),
+    dict(type='CenterCrop', crop_size=224),
+    dict(
+        type='Normalize',
+        mean=[123.675, 116.28, 103.53],
+        std=[58.395, 57.12, 57.375],
+        to_rgb=True),
+    dict(type='ImageToTensor', keys=['img']),
+    dict(type='Collect', keys=['img'])
+]
+data = dict(
+    samples_per_gpu=16,
+    workers_per_gpu=1,
+    train=dict(
+        type='Flowers',
+        data_prefix='data/flowers/train',
+        ann_file='data/flowers/meta/train.txt',
+        pipeline=[
+            dict(type='LoadImageFromFile'),
+            dict(type='RandomResizedCrop', size=224),
+            dict(type='RandomFlip', flip_prob=0.5, direction='horizontal'),
+            dict(
+                type='Normalize',
+                mean=[123.675, 116.28, 103.53],
+                std=[58.395, 57.12, 57.375],
+                to_rgb=True),
+            dict(type='ImageToTensor', keys=['img']),
+            dict(type='ToTensor', keys=['gt_label']),
+            dict(type='Collect', keys=['img', 'gt_label'])
+        ]),
+    val=dict(
+        type='Flowers',
+        data_prefix='data/flowers/val',
+        ann_file='data/flowers/meta/val.txt',
+        pipeline=[
+            dict(type='LoadImageFromFile'),
+            dict(type='Resize', size=(256, -1)),
+            dict(type='CenterCrop', crop_size=224),
+            dict(
+                type='Normalize',
+                mean=[123.675, 116.28, 103.53],
+                std=[58.395, 57.12, 57.375],
+                to_rgb=True),
+            dict(type='ImageToTensor', keys=['img']),
+            dict(type='Collect', keys=['img'])
+        ]),
+    test=dict(
+        type='Flowers',
+        data_prefix='data/flowers/test',
+        ann_file='data/flowers/meta/test.txt',
+        pipeline=[
+            dict(type='LoadImageFromFile'),
+            dict(type='Resize', size=(256, -1)),
+            dict(type='CenterCrop', crop_size=224),
+            dict(
+                type='Normalize',
+                mean=[123.675, 116.28, 103.53],
+                std=[58.395, 57.12, 57.375],
+                to_rgb=True),
+            dict(type='ImageToTensor', keys=['img']),
+            dict(type='Collect', keys=['img'])
+        ]))
+evaluation = dict(interval=1, metric='accuracy')
+optimizer = dict(type='SGD', lr=0.001, momentum=0.9, weight_decay=0.0001)
+optimizer_config = dict(grad_clip=None)
+lr_config = dict(policy='step', step=[100, 150])
+runner = dict(type='EpochBasedRunner', max_epochs=200)
+checkpoint_config = dict(interval=100)
+log_config = dict(interval=100, hooks=[dict(type='TextLoggerHook')])
+dist_params = dict(backend='nccl')
+log_level = 'INFO'
+load_from = None
+resume_from = None
+workflow = [('train', 1)]
+work_dir = 'output/inception_v3/inception_v3_flowers_bs16_lr0.001'
+gpu_ids = range(0, 1)
+
+2024-04-04 10:31:19,426 - mmcls - INFO - initialize InceptionV3 with init_cfg [{'type': 'TruncNormal', 'layer': ['Conv2d', 'Linear'], 'std': 0.1}, {'type': 'Constant', 'layer': 'BatchNorm2d', 'val': 1}]
+Name of parameter - Initialization information
+
+backbone.Conv2d_1a_3x3.conv.weight - torch.Size([32, 3, 3, 3]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Conv2d_1a_3x3.bn.weight - torch.Size([32]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Conv2d_1a_3x3.bn.bias - torch.Size([32]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Conv2d_2a_3x3.conv.weight - torch.Size([32, 32, 3, 3]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Conv2d_2a_3x3.bn.weight - torch.Size([32]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Conv2d_2a_3x3.bn.bias - torch.Size([32]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Conv2d_2b_3x3.conv.weight - torch.Size([64, 32, 3, 3]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Conv2d_2b_3x3.bn.weight - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Conv2d_2b_3x3.bn.bias - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Conv2d_3b_1x1.conv.weight - torch.Size([80, 64, 1, 1]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Conv2d_3b_1x1.bn.weight - torch.Size([80]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Conv2d_3b_1x1.bn.bias - torch.Size([80]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Conv2d_4a_3x3.conv.weight - torch.Size([192, 80, 3, 3]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Conv2d_4a_3x3.bn.weight - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Conv2d_4a_3x3.bn.bias - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_5b.branch1x1.conv.weight - torch.Size([64, 192, 1, 1]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_5b.branch1x1.bn.weight - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_5b.branch1x1.bn.bias - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_5b.branch5x5_1.conv.weight - torch.Size([48, 192, 1, 1]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_5b.branch5x5_1.bn.weight - torch.Size([48]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_5b.branch5x5_1.bn.bias - torch.Size([48]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_5b.branch5x5_2.conv.weight - torch.Size([64, 48, 5, 5]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_5b.branch5x5_2.bn.weight - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_5b.branch5x5_2.bn.bias - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_5b.branch3x3dbl_1.conv.weight - torch.Size([64, 192, 1, 1]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_5b.branch3x3dbl_1.bn.weight - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_5b.branch3x3dbl_1.bn.bias - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_5b.branch3x3dbl_2.conv.weight - torch.Size([96, 64, 3, 3]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_5b.branch3x3dbl_2.bn.weight - torch.Size([96]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_5b.branch3x3dbl_2.bn.bias - torch.Size([96]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_5b.branch3x3dbl_3.conv.weight - torch.Size([96, 96, 3, 3]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_5b.branch3x3dbl_3.bn.weight - torch.Size([96]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_5b.branch3x3dbl_3.bn.bias - torch.Size([96]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_5b.branch_pool.conv.weight - torch.Size([32, 192, 1, 1]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_5b.branch_pool.bn.weight - torch.Size([32]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_5b.branch_pool.bn.bias - torch.Size([32]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_5c.branch1x1.conv.weight - torch.Size([64, 256, 1, 1]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_5c.branch1x1.bn.weight - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_5c.branch1x1.bn.bias - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_5c.branch5x5_1.conv.weight - torch.Size([48, 256, 1, 1]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_5c.branch5x5_1.bn.weight - torch.Size([48]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_5c.branch5x5_1.bn.bias - torch.Size([48]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_5c.branch5x5_2.conv.weight - torch.Size([64, 48, 5, 5]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_5c.branch5x5_2.bn.weight - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_5c.branch5x5_2.bn.bias - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_5c.branch3x3dbl_1.conv.weight - torch.Size([64, 256, 1, 1]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_5c.branch3x3dbl_1.bn.weight - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_5c.branch3x3dbl_1.bn.bias - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_5c.branch3x3dbl_2.conv.weight - torch.Size([96, 64, 3, 3]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_5c.branch3x3dbl_2.bn.weight - torch.Size([96]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_5c.branch3x3dbl_2.bn.bias - torch.Size([96]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_5c.branch3x3dbl_3.conv.weight - torch.Size([96, 96, 3, 3]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_5c.branch3x3dbl_3.bn.weight - torch.Size([96]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_5c.branch3x3dbl_3.bn.bias - torch.Size([96]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_5c.branch_pool.conv.weight - torch.Size([64, 256, 1, 1]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_5c.branch_pool.bn.weight - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_5c.branch_pool.bn.bias - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_5d.branch1x1.conv.weight - torch.Size([64, 288, 1, 1]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_5d.branch1x1.bn.weight - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_5d.branch1x1.bn.bias - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_5d.branch5x5_1.conv.weight - torch.Size([48, 288, 1, 1]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_5d.branch5x5_1.bn.weight - torch.Size([48]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_5d.branch5x5_1.bn.bias - torch.Size([48]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_5d.branch5x5_2.conv.weight - torch.Size([64, 48, 5, 5]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_5d.branch5x5_2.bn.weight - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_5d.branch5x5_2.bn.bias - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_5d.branch3x3dbl_1.conv.weight - torch.Size([64, 288, 1, 1]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_5d.branch3x3dbl_1.bn.weight - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_5d.branch3x3dbl_1.bn.bias - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_5d.branch3x3dbl_2.conv.weight - torch.Size([96, 64, 3, 3]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_5d.branch3x3dbl_2.bn.weight - torch.Size([96]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_5d.branch3x3dbl_2.bn.bias - torch.Size([96]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_5d.branch3x3dbl_3.conv.weight - torch.Size([96, 96, 3, 3]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_5d.branch3x3dbl_3.bn.weight - torch.Size([96]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_5d.branch3x3dbl_3.bn.bias - torch.Size([96]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_5d.branch_pool.conv.weight - torch.Size([64, 288, 1, 1]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_5d.branch_pool.bn.weight - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_5d.branch_pool.bn.bias - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6a.branch3x3.conv.weight - torch.Size([384, 288, 3, 3]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_6a.branch3x3.bn.weight - torch.Size([384]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6a.branch3x3.bn.bias - torch.Size([384]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6a.branch3x3dbl_1.conv.weight - torch.Size([64, 288, 1, 1]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_6a.branch3x3dbl_1.bn.weight - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6a.branch3x3dbl_1.bn.bias - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6a.branch3x3dbl_2.conv.weight - torch.Size([96, 64, 3, 3]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_6a.branch3x3dbl_2.bn.weight - torch.Size([96]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6a.branch3x3dbl_2.bn.bias - torch.Size([96]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6a.branch3x3dbl_3.conv.weight - torch.Size([96, 96, 3, 3]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_6a.branch3x3dbl_3.bn.weight - torch.Size([96]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6a.branch3x3dbl_3.bn.bias - torch.Size([96]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6b.branch1x1.conv.weight - torch.Size([192, 768, 1, 1]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_6b.branch1x1.bn.weight - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6b.branch1x1.bn.bias - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6b.branch7x7_1.conv.weight - torch.Size([128, 768, 1, 1]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_6b.branch7x7_1.bn.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6b.branch7x7_1.bn.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6b.branch7x7_2.conv.weight - torch.Size([128, 128, 1, 7]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_6b.branch7x7_2.bn.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6b.branch7x7_2.bn.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6b.branch7x7_3.conv.weight - torch.Size([192, 128, 7, 1]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_6b.branch7x7_3.bn.weight - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6b.branch7x7_3.bn.bias - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6b.branch7x7dbl_1.conv.weight - torch.Size([128, 768, 1, 1]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_6b.branch7x7dbl_1.bn.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6b.branch7x7dbl_1.bn.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6b.branch7x7dbl_2.conv.weight - torch.Size([128, 128, 7, 1]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_6b.branch7x7dbl_2.bn.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6b.branch7x7dbl_2.bn.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6b.branch7x7dbl_3.conv.weight - torch.Size([128, 128, 1, 7]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_6b.branch7x7dbl_3.bn.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6b.branch7x7dbl_3.bn.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6b.branch7x7dbl_4.conv.weight - torch.Size([128, 128, 7, 1]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_6b.branch7x7dbl_4.bn.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6b.branch7x7dbl_4.bn.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6b.branch7x7dbl_5.conv.weight - torch.Size([192, 128, 1, 7]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_6b.branch7x7dbl_5.bn.weight - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6b.branch7x7dbl_5.bn.bias - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6b.branch_pool.conv.weight - torch.Size([192, 768, 1, 1]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_6b.branch_pool.bn.weight - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6b.branch_pool.bn.bias - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6c.branch1x1.conv.weight - torch.Size([192, 768, 1, 1]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_6c.branch1x1.bn.weight - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6c.branch1x1.bn.bias - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6c.branch7x7_1.conv.weight - torch.Size([160, 768, 1, 1]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_6c.branch7x7_1.bn.weight - torch.Size([160]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6c.branch7x7_1.bn.bias - torch.Size([160]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6c.branch7x7_2.conv.weight - torch.Size([160, 160, 1, 7]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_6c.branch7x7_2.bn.weight - torch.Size([160]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6c.branch7x7_2.bn.bias - torch.Size([160]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6c.branch7x7_3.conv.weight - torch.Size([192, 160, 7, 1]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_6c.branch7x7_3.bn.weight - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6c.branch7x7_3.bn.bias - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6c.branch7x7dbl_1.conv.weight - torch.Size([160, 768, 1, 1]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_6c.branch7x7dbl_1.bn.weight - torch.Size([160]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6c.branch7x7dbl_1.bn.bias - torch.Size([160]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6c.branch7x7dbl_2.conv.weight - torch.Size([160, 160, 7, 1]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_6c.branch7x7dbl_2.bn.weight - torch.Size([160]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6c.branch7x7dbl_2.bn.bias - torch.Size([160]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6c.branch7x7dbl_3.conv.weight - torch.Size([160, 160, 1, 7]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_6c.branch7x7dbl_3.bn.weight - torch.Size([160]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6c.branch7x7dbl_3.bn.bias - torch.Size([160]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6c.branch7x7dbl_4.conv.weight - torch.Size([160, 160, 7, 1]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_6c.branch7x7dbl_4.bn.weight - torch.Size([160]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6c.branch7x7dbl_4.bn.bias - torch.Size([160]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6c.branch7x7dbl_5.conv.weight - torch.Size([192, 160, 1, 7]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_6c.branch7x7dbl_5.bn.weight - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6c.branch7x7dbl_5.bn.bias - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6c.branch_pool.conv.weight - torch.Size([192, 768, 1, 1]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_6c.branch_pool.bn.weight - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6c.branch_pool.bn.bias - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6d.branch1x1.conv.weight - torch.Size([192, 768, 1, 1]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_6d.branch1x1.bn.weight - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6d.branch1x1.bn.bias - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6d.branch7x7_1.conv.weight - torch.Size([160, 768, 1, 1]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_6d.branch7x7_1.bn.weight - torch.Size([160]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6d.branch7x7_1.bn.bias - torch.Size([160]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6d.branch7x7_2.conv.weight - torch.Size([160, 160, 1, 7]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_6d.branch7x7_2.bn.weight - torch.Size([160]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6d.branch7x7_2.bn.bias - torch.Size([160]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6d.branch7x7_3.conv.weight - torch.Size([192, 160, 7, 1]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_6d.branch7x7_3.bn.weight - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6d.branch7x7_3.bn.bias - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6d.branch7x7dbl_1.conv.weight - torch.Size([160, 768, 1, 1]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_6d.branch7x7dbl_1.bn.weight - torch.Size([160]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6d.branch7x7dbl_1.bn.bias - torch.Size([160]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6d.branch7x7dbl_2.conv.weight - torch.Size([160, 160, 7, 1]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_6d.branch7x7dbl_2.bn.weight - torch.Size([160]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6d.branch7x7dbl_2.bn.bias - torch.Size([160]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6d.branch7x7dbl_3.conv.weight - torch.Size([160, 160, 1, 7]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_6d.branch7x7dbl_3.bn.weight - torch.Size([160]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6d.branch7x7dbl_3.bn.bias - torch.Size([160]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6d.branch7x7dbl_4.conv.weight - torch.Size([160, 160, 7, 1]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_6d.branch7x7dbl_4.bn.weight - torch.Size([160]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6d.branch7x7dbl_4.bn.bias - torch.Size([160]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6d.branch7x7dbl_5.conv.weight - torch.Size([192, 160, 1, 7]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_6d.branch7x7dbl_5.bn.weight - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6d.branch7x7dbl_5.bn.bias - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6d.branch_pool.conv.weight - torch.Size([192, 768, 1, 1]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_6d.branch_pool.bn.weight - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6d.branch_pool.bn.bias - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6e.branch1x1.conv.weight - torch.Size([192, 768, 1, 1]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_6e.branch1x1.bn.weight - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6e.branch1x1.bn.bias - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6e.branch7x7_1.conv.weight - torch.Size([192, 768, 1, 1]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_6e.branch7x7_1.bn.weight - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6e.branch7x7_1.bn.bias - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6e.branch7x7_2.conv.weight - torch.Size([192, 192, 1, 7]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_6e.branch7x7_2.bn.weight - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6e.branch7x7_2.bn.bias - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6e.branch7x7_3.conv.weight - torch.Size([192, 192, 7, 1]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_6e.branch7x7_3.bn.weight - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6e.branch7x7_3.bn.bias - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6e.branch7x7dbl_1.conv.weight - torch.Size([192, 768, 1, 1]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_6e.branch7x7dbl_1.bn.weight - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6e.branch7x7dbl_1.bn.bias - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6e.branch7x7dbl_2.conv.weight - torch.Size([192, 192, 7, 1]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_6e.branch7x7dbl_2.bn.weight - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6e.branch7x7dbl_2.bn.bias - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6e.branch7x7dbl_3.conv.weight - torch.Size([192, 192, 1, 7]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_6e.branch7x7dbl_3.bn.weight - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6e.branch7x7dbl_3.bn.bias - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6e.branch7x7dbl_4.conv.weight - torch.Size([192, 192, 7, 1]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_6e.branch7x7dbl_4.bn.weight - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6e.branch7x7dbl_4.bn.bias - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6e.branch7x7dbl_5.conv.weight - torch.Size([192, 192, 1, 7]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_6e.branch7x7dbl_5.bn.weight - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6e.branch7x7dbl_5.bn.bias - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6e.branch_pool.conv.weight - torch.Size([192, 768, 1, 1]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_6e.branch_pool.bn.weight - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_6e.branch_pool.bn.bias - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_7a.branch3x3_1.conv.weight - torch.Size([192, 768, 1, 1]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_7a.branch3x3_1.bn.weight - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_7a.branch3x3_1.bn.bias - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_7a.branch3x3_2.conv.weight - torch.Size([320, 192, 3, 3]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_7a.branch3x3_2.bn.weight - torch.Size([320]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_7a.branch3x3_2.bn.bias - torch.Size([320]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_7a.branch7x7x3_1.conv.weight - torch.Size([192, 768, 1, 1]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_7a.branch7x7x3_1.bn.weight - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_7a.branch7x7x3_1.bn.bias - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_7a.branch7x7x3_2.conv.weight - torch.Size([192, 192, 1, 7]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_7a.branch7x7x3_2.bn.weight - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_7a.branch7x7x3_2.bn.bias - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_7a.branch7x7x3_3.conv.weight - torch.Size([192, 192, 7, 1]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_7a.branch7x7x3_3.bn.weight - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_7a.branch7x7x3_3.bn.bias - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_7a.branch7x7x3_4.conv.weight - torch.Size([192, 192, 3, 3]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_7a.branch7x7x3_4.bn.weight - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_7a.branch7x7x3_4.bn.bias - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_7b.branch1x1.conv.weight - torch.Size([320, 1280, 1, 1]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_7b.branch1x1.bn.weight - torch.Size([320]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_7b.branch1x1.bn.bias - torch.Size([320]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_7b.branch3x3_1.conv.weight - torch.Size([384, 1280, 1, 1]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_7b.branch3x3_1.bn.weight - torch.Size([384]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_7b.branch3x3_1.bn.bias - torch.Size([384]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_7b.branch3x3_2a.conv.weight - torch.Size([384, 384, 1, 3]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_7b.branch3x3_2a.bn.weight - torch.Size([384]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_7b.branch3x3_2a.bn.bias - torch.Size([384]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_7b.branch3x3_2b.conv.weight - torch.Size([384, 384, 3, 1]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_7b.branch3x3_2b.bn.weight - torch.Size([384]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_7b.branch3x3_2b.bn.bias - torch.Size([384]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_7b.branch3x3dbl_1.conv.weight - torch.Size([448, 1280, 1, 1]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_7b.branch3x3dbl_1.bn.weight - torch.Size([448]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_7b.branch3x3dbl_1.bn.bias - torch.Size([448]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_7b.branch3x3dbl_2.conv.weight - torch.Size([384, 448, 3, 3]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_7b.branch3x3dbl_2.bn.weight - torch.Size([384]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_7b.branch3x3dbl_2.bn.bias - torch.Size([384]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_7b.branch3x3dbl_3a.conv.weight - torch.Size([384, 384, 1, 3]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_7b.branch3x3dbl_3a.bn.weight - torch.Size([384]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_7b.branch3x3dbl_3a.bn.bias - torch.Size([384]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_7b.branch3x3dbl_3b.conv.weight - torch.Size([384, 384, 3, 1]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_7b.branch3x3dbl_3b.bn.weight - torch.Size([384]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_7b.branch3x3dbl_3b.bn.bias - torch.Size([384]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_7b.branch_pool.conv.weight - torch.Size([192, 1280, 1, 1]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_7b.branch_pool.bn.weight - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_7b.branch_pool.bn.bias - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_7c.branch1x1.conv.weight - torch.Size([320, 2048, 1, 1]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_7c.branch1x1.bn.weight - torch.Size([320]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_7c.branch1x1.bn.bias - torch.Size([320]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_7c.branch3x3_1.conv.weight - torch.Size([384, 2048, 1, 1]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_7c.branch3x3_1.bn.weight - torch.Size([384]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_7c.branch3x3_1.bn.bias - torch.Size([384]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_7c.branch3x3_2a.conv.weight - torch.Size([384, 384, 1, 3]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_7c.branch3x3_2a.bn.weight - torch.Size([384]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_7c.branch3x3_2a.bn.bias - torch.Size([384]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_7c.branch3x3_2b.conv.weight - torch.Size([384, 384, 3, 1]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_7c.branch3x3_2b.bn.weight - torch.Size([384]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_7c.branch3x3_2b.bn.bias - torch.Size([384]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_7c.branch3x3dbl_1.conv.weight - torch.Size([448, 2048, 1, 1]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_7c.branch3x3dbl_1.bn.weight - torch.Size([448]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_7c.branch3x3dbl_1.bn.bias - torch.Size([448]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_7c.branch3x3dbl_2.conv.weight - torch.Size([384, 448, 3, 3]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_7c.branch3x3dbl_2.bn.weight - torch.Size([384]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_7c.branch3x3dbl_2.bn.bias - torch.Size([384]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_7c.branch3x3dbl_3a.conv.weight - torch.Size([384, 384, 1, 3]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_7c.branch3x3dbl_3a.bn.weight - torch.Size([384]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_7c.branch3x3dbl_3a.bn.bias - torch.Size([384]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_7c.branch3x3dbl_3b.conv.weight - torch.Size([384, 384, 3, 1]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_7c.branch3x3dbl_3b.bn.weight - torch.Size([384]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_7c.branch3x3dbl_3b.bn.bias - torch.Size([384]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_7c.branch_pool.conv.weight - torch.Size([192, 2048, 1, 1]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.Mixed_7c.branch_pool.bn.weight - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.Mixed_7c.branch_pool.bn.bias - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.fc.weight - torch.Size([17, 2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+
+backbone.fc.bias - torch.Size([17]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.1, bias=0 
+2024-04-04 10:31:23,207 - mmcls - INFO - Start running, host: ambr0se@gpu2-comp-111, work_dir: /userhome/cs2/ambr0se/COMP3340Project/CNN_Image_Classification_Code/output/inception_v3/inception_v3_flowers_bs16_lr0.001
+2024-04-04 10:31:23,208 - mmcls - INFO - Hooks will be executed in the following order:
+before_run:
+(VERY_HIGH   ) StepLrUpdaterHook                  
+(NORMAL      ) CheckpointHook                     
+(NORMAL      ) EvalHook                           
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+before_train_epoch:
+(VERY_HIGH   ) StepLrUpdaterHook                  
+(NORMAL      ) EvalHook                           
+(LOW         ) IterTimerHook                      
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+before_train_iter:
+(VERY_HIGH   ) StepLrUpdaterHook                  
+(NORMAL      ) EvalHook                           
+(LOW         ) IterTimerHook                      
+ -------------------- 
+after_train_iter:
+(ABOVE_NORMAL) OptimizerHook                      
+(NORMAL      ) CheckpointHook                     
+(NORMAL      ) EvalHook                           
+(LOW         ) IterTimerHook                      
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+after_train_epoch:
+(NORMAL      ) CheckpointHook                     
+(NORMAL      ) EvalHook                           
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+before_val_epoch:
+(LOW         ) IterTimerHook                      
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+before_val_iter:
+(LOW         ) IterTimerHook                      
+ -------------------- 
+after_val_iter:
+(LOW         ) IterTimerHook                      
+ -------------------- 
+after_val_epoch:
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+after_run:
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+2024-04-04 10:31:23,211 - mmcls - INFO - workflow: [('train', 1)], max: 200 epochs
+2024-04-04 10:31:23,211 - mmcls - INFO - Checkpoints will be saved to /userhome/cs2/ambr0se/COMP3340Project/CNN_Image_Classification_Code/output/inception_v3/inception_v3_flowers_bs16_lr0.001 by HardDiskBackend.
+2024-04-04 10:31:36,414 - mmcls - INFO - Epoch(val) [1][9]	accuracy_top-1: 18.3824, accuracy_top-5: 52.2059
+2024-04-04 10:31:48,751 - mmcls - INFO - Epoch(val) [2][9]	accuracy_top-1: 19.1176, accuracy_top-5: 56.6176
+2024-04-04 10:32:01,276 - mmcls - INFO - Epoch(val) [3][9]	accuracy_top-1: 19.1176, accuracy_top-5: 65.4412
+2024-04-04 10:32:13,544 - mmcls - INFO - Epoch(val) [4][9]	accuracy_top-1: 21.3235, accuracy_top-5: 73.5294
+2024-04-04 10:32:26,107 - mmcls - INFO - Epoch(val) [5][9]	accuracy_top-1: 22.7941, accuracy_top-5: 67.6471
+2024-04-04 10:32:38,651 - mmcls - INFO - Epoch(val) [6][9]	accuracy_top-1: 30.1471, accuracy_top-5: 74.2647
+2024-04-04 10:32:52,372 - mmcls - INFO - Epoch(val) [7][9]	accuracy_top-1: 28.6765, accuracy_top-5: 72.7941
+2024-04-04 10:33:04,989 - mmcls - INFO - Epoch(val) [8][9]	accuracy_top-1: 27.9412, accuracy_top-5: 67.6471
+2024-04-04 10:33:18,093 - mmcls - INFO - Epoch(val) [9][9]	accuracy_top-1: 32.3529, accuracy_top-5: 76.4706
+2024-04-04 10:33:30,103 - mmcls - INFO - Epoch(val) [10][9]	accuracy_top-1: 32.3529, accuracy_top-5: 77.2059
+2024-04-04 10:33:42,740 - mmcls - INFO - Epoch(val) [11][9]	accuracy_top-1: 30.1471, accuracy_top-5: 74.2647
+2024-04-04 10:33:56,954 - mmcls - INFO - Epoch(val) [12][9]	accuracy_top-1: 31.6176, accuracy_top-5: 80.1471
+2024-04-04 10:34:11,189 - mmcls - INFO - Epoch(val) [13][9]	accuracy_top-1: 28.6765, accuracy_top-5: 79.4118
+2024-04-04 10:34:23,116 - mmcls - INFO - Epoch(val) [14][9]	accuracy_top-1: 33.0882, accuracy_top-5: 79.4118
+2024-04-04 10:34:35,762 - mmcls - INFO - Epoch(val) [15][9]	accuracy_top-1: 29.4118, accuracy_top-5: 79.4118
+2024-04-04 10:34:48,800 - mmcls - INFO - Epoch(val) [16][9]	accuracy_top-1: 27.9412, accuracy_top-5: 81.6176
+2024-04-04 10:35:02,021 - mmcls - INFO - Epoch(val) [17][9]	accuracy_top-1: 32.3529, accuracy_top-5: 80.1471
+2024-04-04 10:35:13,933 - mmcls - INFO - Epoch(val) [18][9]	accuracy_top-1: 29.4118, accuracy_top-5: 82.3529
+2024-04-04 10:35:27,068 - mmcls - INFO - Epoch(val) [19][9]	accuracy_top-1: 35.2941, accuracy_top-5: 79.4118
+2024-04-04 10:35:39,528 - mmcls - INFO - Epoch(val) [20][9]	accuracy_top-1: 36.0294, accuracy_top-5: 80.1471
+2024-04-04 10:35:51,697 - mmcls - INFO - Epoch(val) [21][9]	accuracy_top-1: 33.0882, accuracy_top-5: 80.8824
+2024-04-04 10:36:03,982 - mmcls - INFO - Epoch(val) [22][9]	accuracy_top-1: 38.9706, accuracy_top-5: 84.5588
+2024-04-04 10:36:17,638 - mmcls - INFO - Epoch(val) [23][9]	accuracy_top-1: 38.2353, accuracy_top-5: 85.2941
+2024-04-04 10:36:29,974 - mmcls - INFO - Epoch(val) [24][9]	accuracy_top-1: 38.2353, accuracy_top-5: 85.2941
+2024-04-04 10:36:42,220 - mmcls - INFO - Epoch(val) [25][9]	accuracy_top-1: 36.7647, accuracy_top-5: 80.8824
+2024-04-04 10:36:55,547 - mmcls - INFO - Epoch(val) [26][9]	accuracy_top-1: 35.2941, accuracy_top-5: 82.3529
+2024-04-04 10:37:08,333 - mmcls - INFO - Epoch(val) [27][9]	accuracy_top-1: 37.5000, accuracy_top-5: 84.5588
+2024-04-04 10:37:20,807 - mmcls - INFO - Epoch(val) [28][9]	accuracy_top-1: 39.7059, accuracy_top-5: 84.5588
+2024-04-04 10:37:33,268 - mmcls - INFO - Epoch(val) [29][9]	accuracy_top-1: 36.0294, accuracy_top-5: 86.7647
+2024-04-04 10:37:45,848 - mmcls - INFO - Epoch(val) [30][9]	accuracy_top-1: 43.3824, accuracy_top-5: 86.7647
+2024-04-04 10:37:58,561 - mmcls - INFO - Epoch(val) [31][9]	accuracy_top-1: 38.2353, accuracy_top-5: 83.0882
+2024-04-04 10:38:10,999 - mmcls - INFO - Epoch(val) [32][9]	accuracy_top-1: 43.3824, accuracy_top-5: 85.2941
+2024-04-04 10:38:23,098 - mmcls - INFO - Epoch(val) [33][9]	accuracy_top-1: 44.1176, accuracy_top-5: 81.6176
+2024-04-04 10:38:35,700 - mmcls - INFO - Epoch(val) [34][9]	accuracy_top-1: 41.1765, accuracy_top-5: 85.2941
+2024-04-04 10:38:48,308 - mmcls - INFO - Epoch(val) [35][9]	accuracy_top-1: 39.7059, accuracy_top-5: 86.7647
+2024-04-04 10:39:00,992 - mmcls - INFO - Epoch(val) [36][9]	accuracy_top-1: 44.1176, accuracy_top-5: 83.0882
+2024-04-04 10:39:13,217 - mmcls - INFO - Epoch(val) [37][9]	accuracy_top-1: 44.1176, accuracy_top-5: 83.8235
+2024-04-04 10:39:26,844 - mmcls - INFO - Epoch(val) [38][9]	accuracy_top-1: 46.3235, accuracy_top-5: 90.4412
+2024-04-04 10:39:41,221 - mmcls - INFO - Epoch(val) [39][9]	accuracy_top-1: 42.6471, accuracy_top-5: 89.7059
+2024-04-04 10:39:54,497 - mmcls - INFO - Epoch(val) [40][9]	accuracy_top-1: 47.0588, accuracy_top-5: 85.2941
+2024-04-04 10:40:07,554 - mmcls - INFO - Epoch(val) [41][9]	accuracy_top-1: 50.0000, accuracy_top-5: 89.7059
+2024-04-04 10:40:19,779 - mmcls - INFO - Epoch(val) [42][9]	accuracy_top-1: 44.8529, accuracy_top-5: 90.4412
+2024-04-04 10:40:33,862 - mmcls - INFO - Epoch(val) [43][9]	accuracy_top-1: 43.3824, accuracy_top-5: 88.2353
+2024-04-04 10:40:46,223 - mmcls - INFO - Epoch(val) [44][9]	accuracy_top-1: 46.3235, accuracy_top-5: 92.6471
+2024-04-04 10:40:58,252 - mmcls - INFO - Epoch(val) [45][9]	accuracy_top-1: 47.0588, accuracy_top-5: 89.7059
+2024-04-04 10:41:10,779 - mmcls - INFO - Epoch(val) [46][9]	accuracy_top-1: 44.8529, accuracy_top-5: 88.9706
+2024-04-04 10:41:23,726 - mmcls - INFO - Epoch(val) [47][9]	accuracy_top-1: 53.6765, accuracy_top-5: 89.7059
+2024-04-04 10:41:36,269 - mmcls - INFO - Epoch(val) [48][9]	accuracy_top-1: 52.9412, accuracy_top-5: 89.7059
+2024-04-04 10:41:49,820 - mmcls - INFO - Epoch(val) [49][9]	accuracy_top-1: 52.9412, accuracy_top-5: 90.4412
+2024-04-04 10:42:02,106 - mmcls - INFO - Epoch(val) [50][9]	accuracy_top-1: 52.9412, accuracy_top-5: 90.4412
+2024-04-04 10:42:14,688 - mmcls - INFO - Epoch(val) [51][9]	accuracy_top-1: 55.1471, accuracy_top-5: 88.9706
+2024-04-04 10:42:26,815 - mmcls - INFO - Epoch(val) [52][9]	accuracy_top-1: 53.6765, accuracy_top-5: 91.1765
+2024-04-04 10:42:39,059 - mmcls - INFO - Epoch(val) [53][9]	accuracy_top-1: 56.6176, accuracy_top-5: 91.9118
+2024-04-04 10:42:50,843 - mmcls - INFO - Epoch(val) [54][9]	accuracy_top-1: 53.6765, accuracy_top-5: 89.7059
+2024-04-04 10:43:03,061 - mmcls - INFO - Epoch(val) [55][9]	accuracy_top-1: 54.4118, accuracy_top-5: 90.4412
+2024-04-04 10:43:14,538 - mmcls - INFO - Epoch(val) [56][9]	accuracy_top-1: 53.6765, accuracy_top-5: 88.2353
+2024-04-04 10:43:26,900 - mmcls - INFO - Epoch(val) [57][9]	accuracy_top-1: 54.4118, accuracy_top-5: 88.9706
+2024-04-04 10:43:39,954 - mmcls - INFO - Epoch(val) [58][9]	accuracy_top-1: 52.9412, accuracy_top-5: 90.4412
+2024-04-04 10:43:51,587 - mmcls - INFO - Epoch(val) [59][9]	accuracy_top-1: 59.5588, accuracy_top-5: 90.4412
+2024-04-04 10:44:03,724 - mmcls - INFO - Epoch(val) [60][9]	accuracy_top-1: 58.0882, accuracy_top-5: 89.7059
+2024-04-04 10:44:16,429 - mmcls - INFO - Epoch(val) [61][9]	accuracy_top-1: 55.8824, accuracy_top-5: 88.2353
+2024-04-04 10:44:29,204 - mmcls - INFO - Epoch(val) [62][9]	accuracy_top-1: 57.3529, accuracy_top-5: 89.7059
+2024-04-04 10:44:41,626 - mmcls - INFO - Epoch(val) [63][9]	accuracy_top-1: 58.8235, accuracy_top-5: 92.6471
+2024-04-04 10:44:53,902 - mmcls - INFO - Epoch(val) [64][9]	accuracy_top-1: 58.8235, accuracy_top-5: 91.9118
+2024-04-04 10:45:05,185 - mmcls - INFO - Epoch(val) [65][9]	accuracy_top-1: 58.0882, accuracy_top-5: 87.5000
+2024-04-04 10:45:16,473 - mmcls - INFO - Epoch(val) [66][9]	accuracy_top-1: 57.3529, accuracy_top-5: 91.1765
+2024-04-04 10:45:29,340 - mmcls - INFO - Epoch(val) [67][9]	accuracy_top-1: 50.7353, accuracy_top-5: 92.6471
+2024-04-04 10:45:42,560 - mmcls - INFO - Epoch(val) [68][9]	accuracy_top-1: 60.2941, accuracy_top-5: 91.9118
+2024-04-04 10:45:54,057 - mmcls - INFO - Epoch(val) [69][9]	accuracy_top-1: 59.5588, accuracy_top-5: 93.3824
+2024-04-04 10:46:06,454 - mmcls - INFO - Epoch(val) [70][9]	accuracy_top-1: 64.7059, accuracy_top-5: 92.6471
+2024-04-04 10:46:19,320 - mmcls - INFO - Epoch(val) [71][9]	accuracy_top-1: 61.0294, accuracy_top-5: 92.6471
+2024-04-04 10:46:31,791 - mmcls - INFO - Epoch(val) [72][9]	accuracy_top-1: 60.2941, accuracy_top-5: 92.6471
+2024-04-04 10:46:43,427 - mmcls - INFO - Epoch(val) [73][9]	accuracy_top-1: 58.8235, accuracy_top-5: 93.3824
+2024-04-04 10:46:55,638 - mmcls - INFO - Epoch(val) [74][9]	accuracy_top-1: 63.2353, accuracy_top-5: 93.3824
+2024-04-04 10:47:08,297 - mmcls - INFO - Epoch(val) [75][9]	accuracy_top-1: 61.0294, accuracy_top-5: 92.6471
+2024-04-04 10:47:21,419 - mmcls - INFO - Epoch(val) [76][9]	accuracy_top-1: 66.1765, accuracy_top-5: 94.1176
+2024-04-04 10:47:34,216 - mmcls - INFO - Epoch(val) [77][9]	accuracy_top-1: 63.2353, accuracy_top-5: 93.3824
+2024-04-04 10:47:46,396 - mmcls - INFO - Epoch(val) [78][9]	accuracy_top-1: 61.0294, accuracy_top-5: 94.1176
+2024-04-04 10:47:59,801 - mmcls - INFO - Epoch(val) [79][9]	accuracy_top-1: 60.2941, accuracy_top-5: 93.3824
+2024-04-04 10:48:12,385 - mmcls - INFO - Epoch(val) [80][9]	accuracy_top-1: 66.1765, accuracy_top-5: 96.3235
+2024-04-04 10:48:24,598 - mmcls - INFO - Epoch(val) [81][9]	accuracy_top-1: 58.8235, accuracy_top-5: 91.1765
+2024-04-04 10:48:36,929 - mmcls - INFO - Epoch(val) [82][9]	accuracy_top-1: 67.6471, accuracy_top-5: 94.1176
+2024-04-04 10:48:50,180 - mmcls - INFO - Epoch(val) [83][9]	accuracy_top-1: 63.9706, accuracy_top-5: 93.3824
+2024-04-04 10:49:02,495 - mmcls - INFO - Epoch(val) [84][9]	accuracy_top-1: 62.5000, accuracy_top-5: 94.1176
+2024-04-04 10:49:15,180 - mmcls - INFO - Epoch(val) [85][9]	accuracy_top-1: 68.3824, accuracy_top-5: 93.3824
+2024-04-04 10:49:27,984 - mmcls - INFO - Epoch(val) [86][9]	accuracy_top-1: 69.8529, accuracy_top-5: 95.5882
+2024-04-04 10:49:39,589 - mmcls - INFO - Epoch(val) [87][9]	accuracy_top-1: 66.9118, accuracy_top-5: 94.1176
+2024-04-04 10:49:51,800 - mmcls - INFO - Epoch(val) [88][9]	accuracy_top-1: 66.1765, accuracy_top-5: 92.6471
+2024-04-04 10:50:05,443 - mmcls - INFO - Epoch(val) [89][9]	accuracy_top-1: 66.1765, accuracy_top-5: 92.6471
+2024-04-04 10:50:17,789 - mmcls - INFO - Epoch(val) [90][9]	accuracy_top-1: 62.5000, accuracy_top-5: 94.1176
+2024-04-04 10:50:30,192 - mmcls - INFO - Epoch(val) [91][9]	accuracy_top-1: 66.1765, accuracy_top-5: 94.1176
+2024-04-04 10:50:41,914 - mmcls - INFO - Epoch(val) [92][9]	accuracy_top-1: 69.8529, accuracy_top-5: 94.1176
+2024-04-04 10:50:53,608 - mmcls - INFO - Epoch(val) [93][9]	accuracy_top-1: 60.2941, accuracy_top-5: 91.1765
+2024-04-04 10:51:05,713 - mmcls - INFO - Epoch(val) [94][9]	accuracy_top-1: 68.3824, accuracy_top-5: 94.8529
+2024-04-04 10:51:17,820 - mmcls - INFO - Epoch(val) [95][9]	accuracy_top-1: 69.8529, accuracy_top-5: 94.8529
+2024-04-04 10:51:29,899 - mmcls - INFO - Epoch(val) [96][9]	accuracy_top-1: 68.3824, accuracy_top-5: 94.8529
+2024-04-04 10:51:41,994 - mmcls - INFO - Epoch(val) [97][9]	accuracy_top-1: 66.9118, accuracy_top-5: 94.1176
+2024-04-04 10:51:54,325 - mmcls - INFO - Epoch(val) [98][9]	accuracy_top-1: 69.1176, accuracy_top-5: 93.3824
+2024-04-04 10:52:06,980 - mmcls - INFO - Epoch(val) [99][9]	accuracy_top-1: 66.9118, accuracy_top-5: 95.5882
+2024-04-04 10:52:18,958 - mmcls - INFO - Saving checkpoint at 100 epochs
+2024-04-04 10:52:21,322 - mmcls - INFO - Epoch(val) [100][9]	accuracy_top-1: 71.3235, accuracy_top-5: 94.8529
+2024-04-04 10:52:33,033 - mmcls - INFO - Epoch(val) [101][9]	accuracy_top-1: 68.3824, accuracy_top-5: 95.5882
+2024-04-04 10:52:45,426 - mmcls - INFO - Epoch(val) [102][9]	accuracy_top-1: 68.3824, accuracy_top-5: 94.1176
+2024-04-04 10:52:57,476 - mmcls - INFO - Epoch(val) [103][9]	accuracy_top-1: 67.6471, accuracy_top-5: 94.1176
+2024-04-04 10:53:10,076 - mmcls - INFO - Epoch(val) [104][9]	accuracy_top-1: 68.3824, accuracy_top-5: 92.6471
+2024-04-04 10:53:23,325 - mmcls - INFO - Epoch(val) [105][9]	accuracy_top-1: 67.6471, accuracy_top-5: 94.8529
+2024-04-04 10:53:37,136 - mmcls - INFO - Epoch(val) [106][9]	accuracy_top-1: 69.8529, accuracy_top-5: 94.1176
+2024-04-04 10:53:50,738 - mmcls - INFO - Epoch(val) [107][9]	accuracy_top-1: 69.8529, accuracy_top-5: 94.8529
+2024-04-04 10:54:05,840 - mmcls - INFO - Epoch(val) [108][9]	accuracy_top-1: 69.1176, accuracy_top-5: 94.8529
+2024-04-04 10:54:18,759 - mmcls - INFO - Epoch(val) [109][9]	accuracy_top-1: 71.3235, accuracy_top-5: 94.1176
+2024-04-04 10:54:31,464 - mmcls - INFO - Epoch(val) [110][9]	accuracy_top-1: 68.3824, accuracy_top-5: 93.3824
+2024-04-04 10:54:43,836 - mmcls - INFO - Epoch(val) [111][9]	accuracy_top-1: 69.8529, accuracy_top-5: 94.8529
+2024-04-04 10:54:56,585 - mmcls - INFO - Epoch(val) [112][9]	accuracy_top-1: 71.3235, accuracy_top-5: 93.3824
+2024-04-04 10:55:08,782 - mmcls - INFO - Epoch(val) [113][9]	accuracy_top-1: 69.8529, accuracy_top-5: 95.5882
+2024-04-04 10:55:21,232 - mmcls - INFO - Epoch(val) [114][9]	accuracy_top-1: 67.6471, accuracy_top-5: 93.3824
+2024-04-04 10:55:34,883 - mmcls - INFO - Epoch(val) [115][9]	accuracy_top-1: 72.0588, accuracy_top-5: 94.8529
+2024-04-04 10:55:46,871 - mmcls - INFO - Epoch(val) [116][9]	accuracy_top-1: 72.0588, accuracy_top-5: 93.3824
+2024-04-04 10:55:59,728 - mmcls - INFO - Epoch(val) [117][9]	accuracy_top-1: 70.5882, accuracy_top-5: 95.5882
+2024-04-04 10:56:12,558 - mmcls - INFO - Epoch(val) [118][9]	accuracy_top-1: 71.3235, accuracy_top-5: 93.3824
+2024-04-04 10:56:24,624 - mmcls - INFO - Epoch(val) [119][9]	accuracy_top-1: 71.3235, accuracy_top-5: 94.1176
+2024-04-04 10:56:37,263 - mmcls - INFO - Epoch(val) [120][9]	accuracy_top-1: 72.7941, accuracy_top-5: 94.1176
+2024-04-04 10:56:49,612 - mmcls - INFO - Epoch(val) [121][9]	accuracy_top-1: 71.3235, accuracy_top-5: 94.8529
+2024-04-04 10:57:01,934 - mmcls - INFO - Epoch(val) [122][9]	accuracy_top-1: 69.8529, accuracy_top-5: 95.5882
+2024-04-04 10:57:14,127 - mmcls - INFO - Epoch(val) [123][9]	accuracy_top-1: 72.0588, accuracy_top-5: 94.1176
+2024-04-04 10:57:26,986 - mmcls - INFO - Epoch(val) [124][9]	accuracy_top-1: 70.5882, accuracy_top-5: 94.1176
+2024-04-04 10:57:39,444 - mmcls - INFO - Epoch(val) [125][9]	accuracy_top-1: 71.3235, accuracy_top-5: 94.8529
+2024-04-04 10:57:51,986 - mmcls - INFO - Epoch(val) [126][9]	accuracy_top-1: 71.3235, accuracy_top-5: 95.5882
+2024-04-04 10:58:04,757 - mmcls - INFO - Epoch(val) [127][9]	accuracy_top-1: 72.0588, accuracy_top-5: 95.5882
+2024-04-04 10:58:16,426 - mmcls - INFO - Epoch(val) [128][9]	accuracy_top-1: 70.5882, accuracy_top-5: 95.5882
+2024-04-04 10:58:28,646 - mmcls - INFO - Epoch(val) [129][9]	accuracy_top-1: 69.8529, accuracy_top-5: 94.1176
+2024-04-04 10:58:40,973 - mmcls - INFO - Epoch(val) [130][9]	accuracy_top-1: 72.0588, accuracy_top-5: 94.8529
+2024-04-04 10:58:54,000 - mmcls - INFO - Epoch(val) [131][9]	accuracy_top-1: 72.7941, accuracy_top-5: 94.1176
+2024-04-04 10:59:06,234 - mmcls - INFO - Epoch(val) [132][9]	accuracy_top-1: 71.3235, accuracy_top-5: 94.8529
+2024-04-04 10:59:17,123 - mmcls - INFO - Epoch(val) [133][9]	accuracy_top-1: 72.0588, accuracy_top-5: 95.5882
+2024-04-04 10:59:29,214 - mmcls - INFO - Epoch(val) [134][9]	accuracy_top-1: 71.3235, accuracy_top-5: 94.1176
+2024-04-04 10:59:41,578 - mmcls - INFO - Epoch(val) [135][9]	accuracy_top-1: 72.0588, accuracy_top-5: 95.5882
+2024-04-04 10:59:54,140 - mmcls - INFO - Epoch(val) [136][9]	accuracy_top-1: 72.0588, accuracy_top-5: 95.5882
+2024-04-04 11:00:06,906 - mmcls - INFO - Epoch(val) [137][9]	accuracy_top-1: 72.7941, accuracy_top-5: 95.5882
+2024-04-04 11:00:18,071 - mmcls - INFO - Epoch(val) [138][9]	accuracy_top-1: 72.0588, accuracy_top-5: 94.8529
+2024-04-04 11:00:30,363 - mmcls - INFO - Epoch(val) [139][9]	accuracy_top-1: 72.0588, accuracy_top-5: 94.1176
+2024-04-04 11:00:43,684 - mmcls - INFO - Epoch(val) [140][9]	accuracy_top-1: 71.3235, accuracy_top-5: 94.8529
+2024-04-04 11:00:56,377 - mmcls - INFO - Epoch(val) [141][9]	accuracy_top-1: 72.0588, accuracy_top-5: 95.5882
+2024-04-04 11:01:09,071 - mmcls - INFO - Epoch(val) [142][9]	accuracy_top-1: 72.0588, accuracy_top-5: 94.8529
+2024-04-04 11:01:21,808 - mmcls - INFO - Epoch(val) [143][9]	accuracy_top-1: 72.7941, accuracy_top-5: 94.8529
+2024-04-04 11:01:34,787 - mmcls - INFO - Epoch(val) [144][9]	accuracy_top-1: 69.8529, accuracy_top-5: 94.8529
+2024-04-04 11:01:47,176 - mmcls - INFO - Epoch(val) [145][9]	accuracy_top-1: 71.3235, accuracy_top-5: 96.3235
+2024-04-04 11:01:59,779 - mmcls - INFO - Epoch(val) [146][9]	accuracy_top-1: 72.7941, accuracy_top-5: 95.5882
+2024-04-04 11:02:13,380 - mmcls - INFO - Epoch(val) [147][9]	accuracy_top-1: 72.0588, accuracy_top-5: 94.8529
+2024-04-04 11:02:25,898 - mmcls - INFO - Epoch(val) [148][9]	accuracy_top-1: 71.3235, accuracy_top-5: 95.5882
+2024-04-04 11:02:37,533 - mmcls - INFO - Epoch(val) [149][9]	accuracy_top-1: 72.7941, accuracy_top-5: 94.1176
+2024-04-04 11:02:49,838 - mmcls - INFO - Epoch(val) [150][9]	accuracy_top-1: 72.7941, accuracy_top-5: 95.5882
+2024-04-04 11:03:01,983 - mmcls - INFO - Epoch(val) [151][9]	accuracy_top-1: 72.7941, accuracy_top-5: 96.3235
+2024-04-04 11:03:14,995 - mmcls - INFO - Epoch(val) [152][9]	accuracy_top-1: 70.5882, accuracy_top-5: 95.5882
+2024-04-04 11:03:27,507 - mmcls - INFO - Epoch(val) [153][9]	accuracy_top-1: 69.8529, accuracy_top-5: 94.8529
+2024-04-04 11:03:41,047 - mmcls - INFO - Epoch(val) [154][9]	accuracy_top-1: 70.5882, accuracy_top-5: 94.8529
+2024-04-04 11:03:53,360 - mmcls - INFO - Epoch(val) [155][9]	accuracy_top-1: 71.3235, accuracy_top-5: 95.5882
+2024-04-04 11:04:05,747 - mmcls - INFO - Epoch(val) [156][9]	accuracy_top-1: 72.0588, accuracy_top-5: 96.3235
+2024-04-04 11:04:18,248 - mmcls - INFO - Epoch(val) [157][9]	accuracy_top-1: 71.3235, accuracy_top-5: 95.5882
+2024-04-04 11:04:29,742 - mmcls - INFO - Epoch(val) [158][9]	accuracy_top-1: 71.3235, accuracy_top-5: 95.5882
+2024-04-04 11:04:41,838 - mmcls - INFO - Epoch(val) [159][9]	accuracy_top-1: 71.3235, accuracy_top-5: 96.3235
+2024-04-04 11:04:55,088 - mmcls - INFO - Epoch(val) [160][9]	accuracy_top-1: 72.7941, accuracy_top-5: 94.1176
+2024-04-04 11:05:07,395 - mmcls - INFO - Epoch(val) [161][9]	accuracy_top-1: 69.8529, accuracy_top-5: 94.8529
+2024-04-04 11:05:20,854 - mmcls - INFO - Epoch(val) [162][9]	accuracy_top-1: 73.5294, accuracy_top-5: 95.5882
+2024-04-04 11:05:33,025 - mmcls - INFO - Epoch(val) [163][9]	accuracy_top-1: 72.0588, accuracy_top-5: 94.1176
+2024-04-04 11:05:44,756 - mmcls - INFO - Epoch(val) [164][9]	accuracy_top-1: 74.2647, accuracy_top-5: 96.3235
+2024-04-04 11:05:57,396 - mmcls - INFO - Epoch(val) [165][9]	accuracy_top-1: 72.0588, accuracy_top-5: 94.8529
+2024-04-04 11:06:10,763 - mmcls - INFO - Epoch(val) [166][9]	accuracy_top-1: 72.0588, accuracy_top-5: 94.8529
+2024-04-04 11:06:23,628 - mmcls - INFO - Epoch(val) [167][9]	accuracy_top-1: 70.5882, accuracy_top-5: 94.1176
+2024-04-04 11:06:36,105 - mmcls - INFO - Epoch(val) [168][9]	accuracy_top-1: 71.3235, accuracy_top-5: 95.5882
+2024-04-04 11:06:48,256 - mmcls - INFO - Epoch(val) [169][9]	accuracy_top-1: 72.0588, accuracy_top-5: 95.5882
+2024-04-04 11:07:00,256 - mmcls - INFO - Epoch(val) [170][9]	accuracy_top-1: 72.0588, accuracy_top-5: 95.5882
+2024-04-04 11:07:12,413 - mmcls - INFO - Epoch(val) [171][9]	accuracy_top-1: 72.7941, accuracy_top-5: 94.1176
+2024-04-04 11:07:24,284 - mmcls - INFO - Epoch(val) [172][9]	accuracy_top-1: 72.7941, accuracy_top-5: 94.1176
+2024-04-04 11:07:37,221 - mmcls - INFO - Epoch(val) [173][9]	accuracy_top-1: 70.5882, accuracy_top-5: 94.8529
+2024-04-04 11:07:49,633 - mmcls - INFO - Epoch(val) [174][9]	accuracy_top-1: 72.7941, accuracy_top-5: 96.3235
+2024-04-04 11:08:01,916 - mmcls - INFO - Epoch(val) [175][9]	accuracy_top-1: 72.0588, accuracy_top-5: 94.1176
+2024-04-04 11:08:14,274 - mmcls - INFO - Epoch(val) [176][9]	accuracy_top-1: 73.5294, accuracy_top-5: 94.8529
+2024-04-04 11:08:27,506 - mmcls - INFO - Epoch(val) [177][9]	accuracy_top-1: 74.2647, accuracy_top-5: 96.3235
+2024-04-04 11:08:40,139 - mmcls - INFO - Epoch(val) [178][9]	accuracy_top-1: 72.7941, accuracy_top-5: 95.5882
+2024-04-04 11:08:53,069 - mmcls - INFO - Epoch(val) [179][9]	accuracy_top-1: 70.5882, accuracy_top-5: 94.8529
+2024-04-04 11:09:05,814 - mmcls - INFO - Epoch(val) [180][9]	accuracy_top-1: 73.5294, accuracy_top-5: 95.5882
+2024-04-04 11:09:18,512 - mmcls - INFO - Epoch(val) [181][9]	accuracy_top-1: 71.3235, accuracy_top-5: 96.3235
+2024-04-04 11:09:31,390 - mmcls - INFO - Epoch(val) [182][9]	accuracy_top-1: 74.2647, accuracy_top-5: 96.3235
+2024-04-04 11:09:44,400 - mmcls - INFO - Epoch(val) [183][9]	accuracy_top-1: 73.5294, accuracy_top-5: 95.5882
+2024-04-04 11:09:56,298 - mmcls - INFO - Epoch(val) [184][9]	accuracy_top-1: 71.3235, accuracy_top-5: 94.8529
+2024-04-04 11:10:08,830 - mmcls - INFO - Epoch(val) [185][9]	accuracy_top-1: 72.0588, accuracy_top-5: 94.8529
+2024-04-04 11:10:23,111 - mmcls - INFO - Epoch(val) [186][9]	accuracy_top-1: 72.0588, accuracy_top-5: 94.8529
+2024-04-04 11:10:35,792 - mmcls - INFO - Epoch(val) [187][9]	accuracy_top-1: 70.5882, accuracy_top-5: 94.1176
+2024-04-04 11:10:47,955 - mmcls - INFO - Epoch(val) [188][9]	accuracy_top-1: 72.0588, accuracy_top-5: 94.8529
+2024-04-04 11:11:00,132 - mmcls - INFO - Epoch(val) [189][9]	accuracy_top-1: 70.5882, accuracy_top-5: 94.1176
+2024-04-04 11:11:12,264 - mmcls - INFO - Epoch(val) [190][9]	accuracy_top-1: 74.2647, accuracy_top-5: 95.5882
+2024-04-04 11:11:24,431 - mmcls - INFO - Epoch(val) [191][9]	accuracy_top-1: 72.0588, accuracy_top-5: 95.5882
+2024-04-04 11:11:37,843 - mmcls - INFO - Epoch(val) [192][9]	accuracy_top-1: 72.0588, accuracy_top-5: 94.8529
+2024-04-04 11:11:49,774 - mmcls - INFO - Epoch(val) [193][9]	accuracy_top-1: 72.0588, accuracy_top-5: 94.1176
+2024-04-04 11:12:01,987 - mmcls - INFO - Epoch(val) [194][9]	accuracy_top-1: 72.0588, accuracy_top-5: 94.8529
+2024-04-04 11:12:15,617 - mmcls - INFO - Epoch(val) [195][9]	accuracy_top-1: 72.7941, accuracy_top-5: 94.8529
+2024-04-04 11:12:27,199 - mmcls - INFO - Epoch(val) [196][9]	accuracy_top-1: 71.3235, accuracy_top-5: 96.3235
+2024-04-04 11:12:40,138 - mmcls - INFO - Epoch(val) [197][9]	accuracy_top-1: 72.7941, accuracy_top-5: 95.5882
+2024-04-04 11:12:53,475 - mmcls - INFO - Epoch(val) [198][9]	accuracy_top-1: 72.7941, accuracy_top-5: 95.5882
+2024-04-04 11:13:05,500 - mmcls - INFO - Epoch(val) [199][9]	accuracy_top-1: 69.1176, accuracy_top-5: 94.1176
+2024-04-04 11:13:15,603 - mmcls - INFO - Saving checkpoint at 200 epochs
+2024-04-04 11:13:17,793 - mmcls - INFO - Epoch(val) [200][9]	accuracy_top-1: 72.0588, accuracy_top-5: 94.8529
