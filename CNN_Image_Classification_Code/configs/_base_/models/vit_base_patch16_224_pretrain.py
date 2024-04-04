@@ -15,12 +15,12 @@ model = dict(
     neck=None,
     head=dict(
         type='VisionTransformerClsHead',
-        num_classes=1000,
+        num_classes=17,
         in_channels=768,
         hidden_dim=3072,
         loss=dict(type='LabelSmoothLoss', label_smooth_val=0.1),
         topk=(1, 5),
     ),
     train_cfg=dict(
-        augments=dict(type='BatchMixup', alpha=0.2, num_classes=1000,
+        augments=dict(type='BatchMixup', alpha=0.2, num_classes=17,
                       prob=1.)))
