@@ -11,7 +11,7 @@ paramwise_cfg = dict(
 optimizer = dict(
     type='AdamW',
     # lr=5e-4 * 128 * 8 / 512,
-    lr=5e-4 * 16 / 512,
+    lr=5e-4 * 32 / 512,
     weight_decay=0.05,
     eps=1e-8,
     betas=(0.9, 0.999),
@@ -25,7 +25,8 @@ lr_config = dict(
     min_lr_ratio=1e-2,
     warmup='linear',
     warmup_ratio=1e-3,
-    warmup_iters=20 * 1252,
+    warmup_iters=34 * 3,
+    # warmup_iters=20 * 1252,
     warmup_by_epoch=False)
 
 runner = dict(type='EpochBasedRunner', max_epochs=200)
