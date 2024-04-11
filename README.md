@@ -1,6 +1,6 @@
 # COMP3340
 
-Our project trained Inception models with batch size ranging from 4, 16 and 64 and learning rate 10^-1, 10^-2, 10^-3 and 10^-4.
+Our project trained Inception models with batch sizes 4, 16 and 64 and learning rates 10^-1, 10^-2, 10^-3 and 10^-4.
 To train an Inception model, for example, with batch size 4 and learning rate 0.1:
 `python tools/train.py \
 	--config 'configs/inception/inception_v3/inceptionv3_flowers_bs4_lr0.1.py' \
@@ -13,7 +13,7 @@ To test an Inception model,
     --out 'output/inception_v3/inception_v3_flowers_bs4_lr0.1/test.json' \
     --metrics 'accuracy'`
 
-To train and test all Inceptios models,
+To train and test all Inception models,
 `./tools/train_inception.sh`
 `./tools/test_inception`
 
