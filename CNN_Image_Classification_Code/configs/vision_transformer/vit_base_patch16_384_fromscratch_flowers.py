@@ -1,7 +1,7 @@
 _base_ = [
     '../_base_/models/vit_base_patch16_384_fromscratch_flowers.py',
-    '../_base_/datasets/flowers_bs32_pil_resize.py',
-    '../_base_/schedules/vit/flowers_bs32.py',
+    '../_base_/datasets/flowers_bs16_pil_resize.py',
+    '../_base_/schedules/vit/flowers_bs16.py',
     '../_base_/default_runtime.py'
 ]
 
