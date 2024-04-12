@@ -11,9 +11,7 @@ model = dict(
         in_channels=3,
         feedforward_channels=3072,
         drop_rate=0.1,
-        attn_drop_rate=0.,
-        arch ='base',
-        drop_path_rate=0.3
+        attn_drop_rate=0.
         ),
     neck=None,
     head=dict(
