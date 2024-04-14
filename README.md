@@ -49,6 +49,22 @@ To train and test all Swin Transformer models,
 `./tools/train_swin.sh`
 `./tools/test_swin.sh`
 
+We have also investigate the impact of gradient clipping on vgg16 bs4 lr0.01, 
+to train that:
+`python tools/train.py \
+	--config 'configs/vgg/vgg16/lr0.01/vgg16_flowers_bs4GradientClipping.py' \
+	--work-dir 'output/vgg16/bs4/lr0.01GradientClipping'`
+ 
+to test that:
+`python tools/test.py \
+    --config 'configs/vgg/vgg16/lr0.01/vgg16_flowers_bs4GradientClipping.py' \
+    --checkpoint 'output/vgg16/bs4/lr0.01GradientClipping/latest.pth' \
+    --out 'output/vgg16/bs4/lr0.01GradientClipping/test.json' \
+    --metrics 'accuracy'`
+
+ 
+
+
 To plot the validation accuracy vs number of epoch,
 `python ploting_validation_accuracy.py \
     path/of/model1.log.json [Optional: path/of/model2.log.json] \
