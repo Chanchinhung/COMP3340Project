@@ -17,6 +17,14 @@ To train and test all Inception models,
 `./tools/train_inception.sh`
 `./tools/test_inception`
 
+To train and test all Resnet34 models,
+`./tools/train_resnet34.sh`
+`./tools/test_resnet34.sh`
+
+To train and test all Swin Transformer models,
+`./tools/train_swin.sh`
+`./tools/test_swin.sh`
+
 To plot the validation accuracy vs number of epoch,
 `python ploting_validation_accuracy.py \
     path/of/model1.log.json [Optional: path/of/model2.log.json] \
