@@ -6,7 +6,8 @@ import torch.nn as nn
 from mmcv.cnn import build_conv_layer
 from mmengine.model import BaseModule
 
-from mmpretrain.registry import MODELS
+from mmcls.models.utils.registry import MODELS
+from ..builder import BACKBONES
 from .base_backbone import BaseBackbone
 
 
@@ -367,7 +368,7 @@ class InceptionAux(BaseModule):
         return x
 
 
-@MODELS.register_module()
+@BACKBONES.register_module()
 class InceptionV3(BaseBackbone):
     """Inception V3 backbone.
 

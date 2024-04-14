@@ -14,7 +14,7 @@ model = dict(
     neck=None,
     head=dict(
         type='VisionTransformerClsHead',
-        num_classes=1000,
+        num_classes=17,
         in_channels=768,
         loss=dict(type='CrossEntropyLoss', loss_weight=1.0),
         topk=(1, 5),

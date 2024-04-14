@@ -1,5 +1,6 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 from .alexnet import AlexNet
+from .inception_v3 import InceptionV3
 from .lenet import LeNet5
 from .mobilenet_v2 import MobileNetV2
 from .mobilenet_v3 import MobileNetV3
@@ -19,7 +20,7 @@ from .vgg import VGG
 from .vision_transformer import VisionTransformer
 
 __all__ = [
-    'LeNet5', 'AlexNet', 'VGG', 'RegNet', 'ResNet', 'ResNeXt', 'ResNetV1d',
+    'LeNet5', 'AlexNet', 'InceptionV3', 'VGG', 'RegNet', 'ResNet', 'ResNeXt', 'ResNetV1d',
     'ResNeSt', 'ResNet_CIFAR', 'SEResNet', 'SEResNeXt', 'ShuffleNetV1',
     'ShuffleNetV2', 'MobileNetV2', 'MobileNetV3', 'VisionTransformer',
     'SwinTransformer', 'TNT', 'TIMMBackbone'
