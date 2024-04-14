@@ -70,14 +70,14 @@ To train and test all Swin Transformer models (base224),
 Due to memory and computational power limitations, our project only trained ViT models with at patch size 16 and img size of 224, and testing models after resizing to 384,
 models are trained at learning rates 10^-2, 10^-3, 10^-4, 10^-5, 3.125e-5.
 To train an ViT model, for example, with learning rate 0.00001:
-python tools/train.py --config 'configs/vision_transformer/lr0.00001/vit_base_patch16_224_fromscratch_flowers.py' --work-dir  'output/vit/lr0.00001/vit_base_patch16_224_fromscratch_flowers'
+`python tools/train.py --config 'configs/vision_transformer/lr0.00001/vit_base_patch16_224_fromscratch_flowers.py' --work-dir  'output/vit/lr0.00001/vit_base_patch16_224_fromscratch_flowers'`
 
 To test a ViT model:
-python tools/test.py \
+`python tools/test.py \
     --config 'configs/vision_transformer/lr0.00001/vit_base_patch16_224_fromscratch_flowers.py' \
     --checkpoint 'output/vit/lr0.00001/vit_base_patch16_224_fromscratch_flowers/latest.pth' \
     --out 'output/vit/lr0.00001/vit_base_patch16_224_fromscratch_flowers/test.json' \
-    --metrics 'accuracy'
+    --metrics 'accuracy'`
 
 ## Improvement Methods
 ### Gradient Clipping
