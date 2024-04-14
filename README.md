@@ -22,3 +22,14 @@ To plot the validation accuracy vs number of epoch,
     path/of/model1.log.json [Optional: path/of/model2.log.json] \
     'legend of model 1' 'Optional: legend of model 2' \
     path/of/output/file`
+
+In this project we first trained 5 sets of baseline models (ResNet18, 34, 50, and VGG 16, 19) with different batch size (4, 16, 64) and learning rate (10^-1, 10^-2, 10^-3) in order to invsetigate the effect of those 2 hyperparameters on models' performance, and identify the best set of hyperparameters for future improvements. 
+
+To train those models, use the command ''(please inserst command here)
+
+It can be assumed that from now on, all command are executed in the terminal under the directory 'COMP3340Project/CNN_Image_Classification_Code' unless otherwise specified.
+
+Then, from the best model, we implemented 4 data augmentation technique. Color jittering aims to reduce the , random vertical flipping with 0.5 probabillity aims to , random rotation by 15 degrees aims to , and random rescaling aims to . We also trained another model where all the above augmentations are applied.
+
+To train those models, (insert cmd)
+To test those models, use the command ''(insert)
