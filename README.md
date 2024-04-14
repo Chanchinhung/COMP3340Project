@@ -17,6 +17,38 @@ To train and test all Inception models,
 `./tools/train_inception.sh`
 `./tools/test_inception`
 
+To train an Resnet34 model, for example, with batch size 4 and learning rate 0.1:
+`python tools/train.py \
+	--config 'configs/resnet/resnet34/lr0.1/resnet34_flowers_bs4.py' \
+	--work-dir 'output/resnet34/bs4/lr0.1'`
+
+To test an Resnet34 model,
+`python tools/test.py \
+    --config 'configs/resnet/resnet34/lr0.1/resnet34_flowers_bs4.py' \
+    --checkpoint 'output/resnet34/bs4/lr0.1/latest.pth' \
+    --out 'output/resnet34/bs4/lr0.1/test.json' \
+    --metrics 'accuracy'`
+
+To train and test all Resnet34 models,
+`./tools/train_resnet34.sh`
+`./tools/test_resnet34.sh`
+
+To train an Swin Transformer model, for example, with batch size 4 and learning rate 0.01:
+`python tools/train.py \
+	--config 'configs/swin_transformer/base_224_no_StochasticDepth/lr0.01/swin_base_224_lr0.01_bs4.py' \
+	--work-dir 'output/swin_transformer_no_StochasticDepth/bs4/lr0.01'`
+
+To test an Swin Transformer model,
+`python tools/test.py \
+    --config 'configs/swin_transformer/base_224_no_StochasticDepth/lr0.01/swin_base_224_lr0.01_bs4.py' \
+    --checkpoint 'output/swin_transformer_no_StochasticDepth/bs4/lr0.01/epoch_200.pth' \
+    --out 'output/swin_transformer_no_StochasticDepth/bs4/lr0.01/test.json' \
+    --metrics 'accuracy'`
+
+To train and test all Swin Transformer models,
+`./tools/train_swin.sh`
+`./tools/test_swin.sh`
+
 To plot the validation accuracy vs number of epoch,
 `python ploting_validation_accuracy.py \
     path/of/model1.log.json [Optional: path/of/model2.log.json] \
