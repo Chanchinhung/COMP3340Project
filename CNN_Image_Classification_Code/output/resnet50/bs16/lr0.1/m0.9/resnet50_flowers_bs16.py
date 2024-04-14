@@ -2,7 +2,7 @@ model = dict(
     type='ImageClassifier',
     backbone=dict(
         type='ResNet',
-        depth=18,
+        depth=50,
         num_stages=4,
         out_indices=(3, ),
         style='pytorch'),
@@ -10,7 +10,7 @@ model = dict(
     head=dict(
         type='LinearClsHead',
         num_classes=17,
-        in_channels=512,
+        in_channels=2048,
         loss=dict(type='CrossEntropyLoss', loss_weight=1.0)))
 dataset_type = 'Flowers'
 img_norm_cfg = dict(
@@ -41,7 +41,7 @@ test_pipeline = [
     dict(type='Collect', keys=['img'])
 ]
 data = dict(
-    samples_per_gpu=32,
+    samples_per_gpu=16,
     workers_per_gpu=1,
     train=dict(
         type='Flowers',
@@ -93,7 +93,7 @@ data = dict(
             dict(type='Collect', keys=['img'])
         ]))
 evaluation = dict(interval=1, metric='accuracy')
-optimizer = dict(type='SGD', lr=0.02, momentum=0.9, weight_decay=0.0001)
+optimizer = dict(type='SGD', momentum=0.9, lr=0.1, weight_decay=0.0001)
 optimizer_config = dict(grad_clip=None)
 lr_config = dict(policy='step', step=[100, 150])
 runner = dict(type='EpochBasedRunner', max_epochs=200)
@@ -104,5 +104,5 @@ log_level = 'INFO'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]
-work_dir = 'output/resnet18_flowers_bs128'
+work_dir = 'output/resnet50/bs16/lr0.1/m0.9'
 gpu_ids = range(0, 1)

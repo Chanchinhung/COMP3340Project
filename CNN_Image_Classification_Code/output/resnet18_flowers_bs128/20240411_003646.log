@@ -1,0 +1,542 @@
+2024-04-11 00:36:46,433 - mmcls - INFO - Environment info:
+------------------------------------------------------------
+sys.platform: linux
+Python: 3.7.16 (default, Jan 17 2023, 22:20:44) [GCC 11.2.0]
+CUDA available: True
+GPU 0: NVIDIA GeForce RTX 2080 Ti
+CUDA_HOME: /usr/local/cuda
+NVCC: Cuda compilation tools, release 11.8, V11.8.89
+GCC: gcc (Ubuntu 11.4.0-1ubuntu1~22.04) 11.4.0
+PyTorch: 1.7.1
+PyTorch compiling details: PyTorch built with:
+  - GCC 7.3
+  - C++ Version: 201402
+  - Intel(R) oneAPI Math Kernel Library Version 2021.4-Product Build 20210904 for Intel(R) 64 architecture applications
+  - Intel(R) MKL-DNN v1.6.0 (Git Hash 5ef631a030a6f73131c77892041042805a06064f)
+  - OpenMP 201511 (a.k.a. OpenMP 4.5)
+  - NNPACK is enabled
+  - CPU capability usage: AVX2
+  - CUDA Runtime 10.1
+  - NVCC architecture flags: -gencode;arch=compute_37,code=sm_37;-gencode;arch=compute_50,code=sm_50;-gencode;arch=compute_60,code=sm_60;-gencode;arch=compute_61,code=sm_61;-gencode;arch=compute_70,code=sm_70;-gencode;arch=compute_75,code=sm_75;-gencode;arch=compute_37,code=compute_37
+  - CuDNN 7.6.3
+  - Magma 2.5.2
+  - Build settings: BLAS=MKL, BUILD_TYPE=Release, CXX_FLAGS= -Wno-deprecated -fvisibility-inlines-hidden -DUSE_PTHREADPOOL -fopenmp -DNDEBUG -DUSE_FBGEMM -DUSE_QNNPACK -DUSE_PYTORCH_QNNPACK -DUSE_XNNPACK -DUSE_VULKAN_WRAPPER -O2 -fPIC -Wno-narrowing -Wall -Wextra -Werror=return-type -Wno-missing-field-initializers -Wno-type-limits -Wno-array-bounds -Wno-unknown-pragmas -Wno-sign-compare -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function -Wno-unused-result -Wno-unused-local-typedefs -Wno-strict-overflow -Wno-strict-aliasing -Wno-error=deprecated-declarations -Wno-stringop-overflow -Wno-psabi -Wno-error=pedantic -Wno-error=redundant-decls -Wno-error=old-style-cast -fdiagnostics-color=always -faligned-new -Wno-unused-but-set-variable -Wno-maybe-uninitialized -fno-math-errno -fno-trapping-math -Werror=format -Wno-stringop-overflow, PERF_WITH_AVX=1, PERF_WITH_AVX2=1, PERF_WITH_AVX512=1, USE_CUDA=ON, USE_EXCEPTION_PTR=1, USE_GFLAGS=OFF, USE_GLOG=OFF, USE_MKL=ON, USE_MKLDNN=ON, USE_MPI=OFF, USE_NCCL=ON, USE_NNPACK=ON, USE_OPENMP=ON, 
+
+TorchVision: 0.8.2
+OpenCV: 4.9.0
+MMCV: 1.5.0
+MMCV Compiler: n/a
+MMCV CUDA Compiler: n/a
+MMClassification: 0.15.0+2b78fde
+------------------------------------------------------------
+
+2024-04-11 00:36:46,435 - mmcls - INFO - Distributed training: False
+2024-04-11 00:36:46,640 - mmcls - INFO - Config:
+model = dict(
+    type='ImageClassifier',
+    backbone=dict(
+        type='ResNet',
+        depth=18,
+        num_stages=4,
+        out_indices=(3, ),
+        style='pytorch'),
+    neck=dict(type='GlobalAveragePooling'),
+    head=dict(
+        type='LinearClsHead',
+        num_classes=17,
+        in_channels=512,
+        loss=dict(type='CrossEntropyLoss', loss_weight=1.0)))
+dataset_type = 'Flowers'
+img_norm_cfg = dict(
+    mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
+train_pipeline = [
+    dict(type='LoadImageFromFile'),
+    dict(type='RandomResizedCrop', size=224),
+    dict(type='RandomFlip', flip_prob=0.5, direction='horizontal'),
+    dict(
+        type='Normalize',
+        mean=[123.675, 116.28, 103.53],
+        std=[58.395, 57.12, 57.375],
+        to_rgb=True),
+    dict(type='ImageToTensor', keys=['img']),
+    dict(type='ToTensor', keys=['gt_label']),
+    dict(type='Collect', keys=['img', 'gt_label'])
+]
+test_pipeline = [
+    dict(type='LoadImageFromFile'),
+    dict(type='Resize', size=(256, -1)),
+    dict(type='CenterCrop', crop_size=224),
+    dict(
+        type='Normalize',
+        mean=[123.675, 116.28, 103.53],
+        std=[58.395, 57.12, 57.375],
+        to_rgb=True),
+    dict(type='ImageToTensor', keys=['img']),
+    dict(type='Collect', keys=['img'])
+]
+data = dict(
+    samples_per_gpu=32,
+    workers_per_gpu=1,
+    train=dict(
+        type='Flowers',
+        data_prefix='data/flowers/train',
+        ann_file='data/flowers/meta/train.txt',
+        pipeline=[
+            dict(type='LoadImageFromFile'),
+            dict(type='RandomResizedCrop', size=224),
+            dict(type='RandomFlip', flip_prob=0.5, direction='horizontal'),
+            dict(
+                type='Normalize',
+                mean=[123.675, 116.28, 103.53],
+                std=[58.395, 57.12, 57.375],
+                to_rgb=True),
+            dict(type='ImageToTensor', keys=['img']),
+            dict(type='ToTensor', keys=['gt_label']),
+            dict(type='Collect', keys=['img', 'gt_label'])
+        ]),
+    val=dict(
+        type='Flowers',
+        data_prefix='data/flowers/val',
+        ann_file='data/flowers/meta/val.txt',
+        pipeline=[
+            dict(type='LoadImageFromFile'),
+            dict(type='Resize', size=(256, -1)),
+            dict(type='CenterCrop', crop_size=224),
+            dict(
+                type='Normalize',
+                mean=[123.675, 116.28, 103.53],
+                std=[58.395, 57.12, 57.375],
+                to_rgb=True),
+            dict(type='ImageToTensor', keys=['img']),
+            dict(type='Collect', keys=['img'])
+        ]),
+    test=dict(
+        type='Flowers',
+        data_prefix='data/flowers/test',
+        ann_file='data/flowers/meta/test.txt',
+        pipeline=[
+            dict(type='LoadImageFromFile'),
+            dict(type='Resize', size=(256, -1)),
+            dict(type='CenterCrop', crop_size=224),
+            dict(
+                type='Normalize',
+                mean=[123.675, 116.28, 103.53],
+                std=[58.395, 57.12, 57.375],
+                to_rgb=True),
+            dict(type='ImageToTensor', keys=['img']),
+            dict(type='Collect', keys=['img'])
+        ]))
+evaluation = dict(interval=1, metric='accuracy')
+optimizer = dict(type='SGD', lr=0.02, momentum=0.9, weight_decay=0.0001)
+optimizer_config = dict(grad_clip=None)
+lr_config = dict(policy='step', step=[100, 150])
+runner = dict(type='EpochBasedRunner', max_epochs=200)
+checkpoint_config = dict(interval=100)
+log_config = dict(interval=100, hooks=[dict(type='TextLoggerHook')])
+dist_params = dict(backend='nccl')
+log_level = 'INFO'
+load_from = None
+resume_from = None
+workflow = [('train', 1)]
+work_dir = 'output/resnet18_flowers_bs128'
+gpu_ids = range(0, 1)
+
+2024-04-11 00:36:47,427 - mmcls - INFO - initialize ResNet with init_cfg [{'type': 'Kaiming', 'layer': ['Conv2d']}, {'type': 'Constant', 'val': 1, 'layer': ['_BatchNorm', 'GroupNorm']}]
+2024-04-11 00:36:47,652 - mmcls - INFO - initialize LinearClsHead with init_cfg {'type': 'Normal', 'layer': 'Linear', 'std': 0.01}
+Name of parameter - Initialization information
+
+backbone.conv1.weight - torch.Size([64, 3, 7, 7]): 
+KaimingInit: a=0, mode=fan_out, nonlinearity=relu, distribution =normal, bias=0 
+
+backbone.bn1.weight - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.bn1.bias - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.layer1.0.conv1.weight - torch.Size([64, 64, 3, 3]): 
+KaimingInit: a=0, mode=fan_out, nonlinearity=relu, distribution =normal, bias=0 
+
+backbone.layer1.0.bn1.weight - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.layer1.0.bn1.bias - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.layer1.0.conv2.weight - torch.Size([64, 64, 3, 3]): 
+KaimingInit: a=0, mode=fan_out, nonlinearity=relu, distribution =normal, bias=0 
+
+backbone.layer1.0.bn2.weight - torch.Size([64]): 
+Initialized by user-defined `init_weights` in ResNet  
+
+backbone.layer1.0.bn2.bias - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.layer1.1.conv1.weight - torch.Size([64, 64, 3, 3]): 
+KaimingInit: a=0, mode=fan_out, nonlinearity=relu, distribution =normal, bias=0 
+
+backbone.layer1.1.bn1.weight - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.layer1.1.bn1.bias - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.layer1.1.conv2.weight - torch.Size([64, 64, 3, 3]): 
+KaimingInit: a=0, mode=fan_out, nonlinearity=relu, distribution =normal, bias=0 
+
+backbone.layer1.1.bn2.weight - torch.Size([64]): 
+Initialized by user-defined `init_weights` in ResNet  
+
+backbone.layer1.1.bn2.bias - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.layer2.0.conv1.weight - torch.Size([128, 64, 3, 3]): 
+KaimingInit: a=0, mode=fan_out, nonlinearity=relu, distribution =normal, bias=0 
+
+backbone.layer2.0.bn1.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.layer2.0.bn1.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.layer2.0.conv2.weight - torch.Size([128, 128, 3, 3]): 
+KaimingInit: a=0, mode=fan_out, nonlinearity=relu, distribution =normal, bias=0 
+
+backbone.layer2.0.bn2.weight - torch.Size([128]): 
+Initialized by user-defined `init_weights` in ResNet  
+
+backbone.layer2.0.bn2.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.layer2.0.downsample.0.weight - torch.Size([128, 64, 1, 1]): 
+KaimingInit: a=0, mode=fan_out, nonlinearity=relu, distribution =normal, bias=0 
+
+backbone.layer2.0.downsample.1.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.layer2.0.downsample.1.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.layer2.1.conv1.weight - torch.Size([128, 128, 3, 3]): 
+KaimingInit: a=0, mode=fan_out, nonlinearity=relu, distribution =normal, bias=0 
+
+backbone.layer2.1.bn1.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.layer2.1.bn1.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.layer2.1.conv2.weight - torch.Size([128, 128, 3, 3]): 
+KaimingInit: a=0, mode=fan_out, nonlinearity=relu, distribution =normal, bias=0 
+
+backbone.layer2.1.bn2.weight - torch.Size([128]): 
+Initialized by user-defined `init_weights` in ResNet  
+
+backbone.layer2.1.bn2.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.layer3.0.conv1.weight - torch.Size([256, 128, 3, 3]): 
+KaimingInit: a=0, mode=fan_out, nonlinearity=relu, distribution =normal, bias=0 
+
+backbone.layer3.0.bn1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.layer3.0.bn1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.layer3.0.conv2.weight - torch.Size([256, 256, 3, 3]): 
+KaimingInit: a=0, mode=fan_out, nonlinearity=relu, distribution =normal, bias=0 
+
+backbone.layer3.0.bn2.weight - torch.Size([256]): 
+Initialized by user-defined `init_weights` in ResNet  
+
+backbone.layer3.0.bn2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.layer3.0.downsample.0.weight - torch.Size([256, 128, 1, 1]): 
+KaimingInit: a=0, mode=fan_out, nonlinearity=relu, distribution =normal, bias=0 
+
+backbone.layer3.0.downsample.1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.layer3.0.downsample.1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.layer3.1.conv1.weight - torch.Size([256, 256, 3, 3]): 
+KaimingInit: a=0, mode=fan_out, nonlinearity=relu, distribution =normal, bias=0 
+
+backbone.layer3.1.bn1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.layer3.1.bn1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.layer3.1.conv2.weight - torch.Size([256, 256, 3, 3]): 
+KaimingInit: a=0, mode=fan_out, nonlinearity=relu, distribution =normal, bias=0 
+
+backbone.layer3.1.bn2.weight - torch.Size([256]): 
+Initialized by user-defined `init_weights` in ResNet  
+
+backbone.layer3.1.bn2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.layer4.0.conv1.weight - torch.Size([512, 256, 3, 3]): 
+KaimingInit: a=0, mode=fan_out, nonlinearity=relu, distribution =normal, bias=0 
+
+backbone.layer4.0.bn1.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.layer4.0.bn1.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.layer4.0.conv2.weight - torch.Size([512, 512, 3, 3]): 
+KaimingInit: a=0, mode=fan_out, nonlinearity=relu, distribution =normal, bias=0 
+
+backbone.layer4.0.bn2.weight - torch.Size([512]): 
+Initialized by user-defined `init_weights` in ResNet  
+
+backbone.layer4.0.bn2.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.layer4.0.downsample.0.weight - torch.Size([512, 256, 1, 1]): 
+KaimingInit: a=0, mode=fan_out, nonlinearity=relu, distribution =normal, bias=0 
+
+backbone.layer4.0.downsample.1.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.layer4.0.downsample.1.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.layer4.1.conv1.weight - torch.Size([512, 512, 3, 3]): 
+KaimingInit: a=0, mode=fan_out, nonlinearity=relu, distribution =normal, bias=0 
+
+backbone.layer4.1.bn1.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.layer4.1.bn1.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.layer4.1.conv2.weight - torch.Size([512, 512, 3, 3]): 
+KaimingInit: a=0, mode=fan_out, nonlinearity=relu, distribution =normal, bias=0 
+
+backbone.layer4.1.bn2.weight - torch.Size([512]): 
+Initialized by user-defined `init_weights` in ResNet  
+
+backbone.layer4.1.bn2.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+head.fc.weight - torch.Size([17, 512]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+head.fc.bias - torch.Size([17]): 
+NormalInit: mean=0, std=0.01, bias=0 
+2024-04-11 00:37:11,112 - mmcls - INFO - Start running, host: cshtimmy@gpu2-comp-204, work_dir: /userhome/cs2/cshtimmy/COMP3340Project/CNN_Image_Classification_Code/output/resnet18_flowers_bs128
+2024-04-11 00:37:11,112 - mmcls - INFO - Hooks will be executed in the following order:
+before_run:
+(VERY_HIGH   ) StepLrUpdaterHook                  
+(NORMAL      ) CheckpointHook                     
+(NORMAL      ) EvalHook                           
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+before_train_epoch:
+(VERY_HIGH   ) StepLrUpdaterHook                  
+(NORMAL      ) EvalHook                           
+(LOW         ) IterTimerHook                      
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+before_train_iter:
+(VERY_HIGH   ) StepLrUpdaterHook                  
+(NORMAL      ) EvalHook                           
+(LOW         ) IterTimerHook                      
+ -------------------- 
+after_train_iter:
+(ABOVE_NORMAL) OptimizerHook                      
+(NORMAL      ) CheckpointHook                     
+(NORMAL      ) EvalHook                           
+(LOW         ) IterTimerHook                      
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+after_train_epoch:
+(NORMAL      ) CheckpointHook                     
+(NORMAL      ) EvalHook                           
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+before_val_epoch:
+(LOW         ) IterTimerHook                      
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+before_val_iter:
+(LOW         ) IterTimerHook                      
+ -------------------- 
+after_val_iter:
+(LOW         ) IterTimerHook                      
+ -------------------- 
+after_val_epoch:
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+after_run:
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+2024-04-11 00:37:11,112 - mmcls - INFO - workflow: [('train', 1)], max: 200 epochs
+2024-04-11 00:37:11,113 - mmcls - INFO - Checkpoints will be saved to /userhome/cs2/cshtimmy/COMP3340Project/CNN_Image_Classification_Code/output/resnet18_flowers_bs128 by HardDiskBackend.
+2024-04-11 00:37:39,311 - mmcls - INFO - Epoch(val) [1][5]	accuracy_top-1: 37.5000, accuracy_top-5: 85.2941
+2024-04-11 00:37:49,432 - mmcls - INFO - Epoch(val) [2][5]	accuracy_top-1: 38.2353, accuracy_top-5: 86.7647
+2024-04-11 00:37:59,719 - mmcls - INFO - Epoch(val) [3][5]	accuracy_top-1: 44.8529, accuracy_top-5: 91.1765
+2024-04-11 00:38:10,525 - mmcls - INFO - Epoch(val) [4][5]	accuracy_top-1: 46.3235, accuracy_top-5: 91.1765
+2024-04-11 00:38:20,736 - mmcls - INFO - Epoch(val) [5][5]	accuracy_top-1: 52.2059, accuracy_top-5: 91.9118
+2024-04-11 00:38:33,171 - mmcls - INFO - Epoch(val) [6][5]	accuracy_top-1: 59.5588, accuracy_top-5: 91.9118
+2024-04-11 00:38:44,294 - mmcls - INFO - Epoch(val) [7][5]	accuracy_top-1: 52.9412, accuracy_top-5: 88.9706
+2024-04-11 00:38:54,243 - mmcls - INFO - Epoch(val) [8][5]	accuracy_top-1: 47.7941, accuracy_top-5: 91.9118
+2024-04-11 00:39:04,618 - mmcls - INFO - Epoch(val) [9][5]	accuracy_top-1: 55.8824, accuracy_top-5: 94.1176
+2024-04-11 00:39:14,887 - mmcls - INFO - Epoch(val) [10][5]	accuracy_top-1: 58.0882, accuracy_top-5: 95.5882
+2024-04-11 00:39:25,112 - mmcls - INFO - Epoch(val) [11][5]	accuracy_top-1: 55.8824, accuracy_top-5: 91.1765
+2024-04-11 00:39:35,411 - mmcls - INFO - Epoch(val) [12][5]	accuracy_top-1: 58.0882, accuracy_top-5: 94.1176
+2024-04-11 00:39:45,879 - mmcls - INFO - Epoch(val) [13][5]	accuracy_top-1: 54.4118, accuracy_top-5: 94.8529
+2024-04-11 00:39:56,388 - mmcls - INFO - Epoch(val) [14][5]	accuracy_top-1: 58.8235, accuracy_top-5: 95.5882
+2024-04-11 00:40:06,677 - mmcls - INFO - Epoch(val) [15][5]	accuracy_top-1: 60.2941, accuracy_top-5: 94.8529
+2024-04-11 00:40:17,475 - mmcls - INFO - Epoch(val) [16][5]	accuracy_top-1: 51.4706, accuracy_top-5: 93.3824
+2024-04-11 00:40:27,602 - mmcls - INFO - Epoch(val) [17][5]	accuracy_top-1: 58.8235, accuracy_top-5: 93.3824
+2024-04-11 00:40:37,897 - mmcls - INFO - Epoch(val) [18][5]	accuracy_top-1: 63.2353, accuracy_top-5: 94.8529
+2024-04-11 00:40:47,978 - mmcls - INFO - Epoch(val) [19][5]	accuracy_top-1: 50.0000, accuracy_top-5: 92.6471
+2024-04-11 00:40:58,375 - mmcls - INFO - Epoch(val) [20][5]	accuracy_top-1: 47.7941, accuracy_top-5: 91.1765
+2024-04-11 00:41:08,754 - mmcls - INFO - Epoch(val) [21][5]	accuracy_top-1: 61.7647, accuracy_top-5: 95.5882
+2024-04-11 00:41:19,034 - mmcls - INFO - Epoch(val) [22][5]	accuracy_top-1: 61.7647, accuracy_top-5: 94.1176
+2024-04-11 00:41:29,226 - mmcls - INFO - Epoch(val) [23][5]	accuracy_top-1: 65.4412, accuracy_top-5: 94.1176
+2024-04-11 00:41:39,271 - mmcls - INFO - Epoch(val) [24][5]	accuracy_top-1: 63.9706, accuracy_top-5: 94.8529
+2024-04-11 00:41:49,477 - mmcls - INFO - Epoch(val) [25][5]	accuracy_top-1: 62.5000, accuracy_top-5: 91.9118
+2024-04-11 00:41:59,793 - mmcls - INFO - Epoch(val) [26][5]	accuracy_top-1: 63.9706, accuracy_top-5: 97.7941
+2024-04-11 00:42:10,070 - mmcls - INFO - Epoch(val) [27][5]	accuracy_top-1: 63.9706, accuracy_top-5: 94.1176
+2024-04-11 00:42:20,413 - mmcls - INFO - Epoch(val) [28][5]	accuracy_top-1: 65.4412, accuracy_top-5: 98.5294
+2024-04-11 00:42:30,716 - mmcls - INFO - Epoch(val) [29][5]	accuracy_top-1: 69.8529, accuracy_top-5: 94.8529
+2024-04-11 00:42:41,179 - mmcls - INFO - Epoch(val) [30][5]	accuracy_top-1: 66.9118, accuracy_top-5: 96.3235
+2024-04-11 00:42:51,458 - mmcls - INFO - Epoch(val) [31][5]	accuracy_top-1: 64.7059, accuracy_top-5: 95.5882
+2024-04-11 00:43:01,913 - mmcls - INFO - Epoch(val) [32][5]	accuracy_top-1: 69.1176, accuracy_top-5: 94.1176
+2024-04-11 00:43:12,212 - mmcls - INFO - Epoch(val) [33][5]	accuracy_top-1: 72.0588, accuracy_top-5: 96.3235
+2024-04-11 00:43:22,358 - mmcls - INFO - Epoch(val) [34][5]	accuracy_top-1: 63.2353, accuracy_top-5: 93.3824
+2024-04-11 00:43:32,532 - mmcls - INFO - Epoch(val) [35][5]	accuracy_top-1: 64.7059, accuracy_top-5: 96.3235
+2024-04-11 00:43:42,476 - mmcls - INFO - Epoch(val) [36][5]	accuracy_top-1: 65.4412, accuracy_top-5: 97.0588
+2024-04-11 00:43:52,651 - mmcls - INFO - Epoch(val) [37][5]	accuracy_top-1: 67.6471, accuracy_top-5: 96.3235
+2024-04-11 00:44:02,794 - mmcls - INFO - Epoch(val) [38][5]	accuracy_top-1: 69.1176, accuracy_top-5: 97.0588
+2024-04-11 00:44:13,032 - mmcls - INFO - Epoch(val) [39][5]	accuracy_top-1: 62.5000, accuracy_top-5: 96.3235
+2024-04-11 00:44:23,320 - mmcls - INFO - Epoch(val) [40][5]	accuracy_top-1: 67.6471, accuracy_top-5: 95.5882
+2024-04-11 00:44:33,576 - mmcls - INFO - Epoch(val) [41][5]	accuracy_top-1: 66.9118, accuracy_top-5: 96.3235
+2024-04-11 00:44:43,702 - mmcls - INFO - Epoch(val) [42][5]	accuracy_top-1: 72.0588, accuracy_top-5: 96.3235
+2024-04-11 00:44:54,005 - mmcls - INFO - Epoch(val) [43][5]	accuracy_top-1: 64.7059, accuracy_top-5: 94.8529
+2024-04-11 00:45:04,340 - mmcls - INFO - Epoch(val) [44][5]	accuracy_top-1: 69.1176, accuracy_top-5: 95.5882
+2024-04-11 00:45:14,710 - mmcls - INFO - Epoch(val) [45][5]	accuracy_top-1: 68.3824, accuracy_top-5: 95.5882
+2024-04-11 00:45:24,999 - mmcls - INFO - Epoch(val) [46][5]	accuracy_top-1: 72.7941, accuracy_top-5: 97.0588
+2024-04-11 00:45:35,265 - mmcls - INFO - Epoch(val) [47][5]	accuracy_top-1: 67.6471, accuracy_top-5: 96.3235
+2024-04-11 00:45:45,510 - mmcls - INFO - Epoch(val) [48][5]	accuracy_top-1: 72.7941, accuracy_top-5: 94.8529
+2024-04-11 00:45:55,907 - mmcls - INFO - Epoch(val) [49][5]	accuracy_top-1: 69.8529, accuracy_top-5: 95.5882
+2024-04-11 00:46:06,163 - mmcls - INFO - Epoch(val) [50][5]	accuracy_top-1: 72.0588, accuracy_top-5: 94.8529
+2024-04-11 00:46:16,429 - mmcls - INFO - Epoch(val) [51][5]	accuracy_top-1: 77.9412, accuracy_top-5: 98.5294
+2024-04-11 00:46:26,733 - mmcls - INFO - Epoch(val) [52][5]	accuracy_top-1: 74.2647, accuracy_top-5: 97.0588
+2024-04-11 00:46:36,891 - mmcls - INFO - Epoch(val) [53][5]	accuracy_top-1: 73.5294, accuracy_top-5: 97.7941
+2024-04-11 00:46:46,713 - mmcls - INFO - Epoch(val) [54][5]	accuracy_top-1: 67.6471, accuracy_top-5: 95.5882
+2024-04-11 00:46:57,020 - mmcls - INFO - Epoch(val) [55][5]	accuracy_top-1: 68.3824, accuracy_top-5: 97.0588
+2024-04-11 00:47:07,459 - mmcls - INFO - Epoch(val) [56][5]	accuracy_top-1: 77.9412, accuracy_top-5: 97.7941
+2024-04-11 00:47:17,945 - mmcls - INFO - Epoch(val) [57][5]	accuracy_top-1: 67.6471, accuracy_top-5: 94.8529
+2024-04-11 00:47:28,173 - mmcls - INFO - Epoch(val) [58][5]	accuracy_top-1: 70.5882, accuracy_top-5: 97.0588
+2024-04-11 00:47:38,354 - mmcls - INFO - Epoch(val) [59][5]	accuracy_top-1: 76.4706, accuracy_top-5: 97.0588
+2024-04-11 00:47:48,284 - mmcls - INFO - Epoch(val) [60][5]	accuracy_top-1: 72.0588, accuracy_top-5: 97.0588
+2024-04-11 00:47:58,476 - mmcls - INFO - Epoch(val) [61][5]	accuracy_top-1: 75.0000, accuracy_top-5: 94.8529
+2024-04-11 00:48:08,639 - mmcls - INFO - Epoch(val) [62][5]	accuracy_top-1: 75.0000, accuracy_top-5: 97.0588
+2024-04-11 00:48:18,821 - mmcls - INFO - Epoch(val) [63][5]	accuracy_top-1: 68.3824, accuracy_top-5: 97.7941
+2024-04-11 00:48:28,972 - mmcls - INFO - Epoch(val) [64][5]	accuracy_top-1: 76.4706, accuracy_top-5: 99.2647
+2024-04-11 00:48:38,770 - mmcls - INFO - Epoch(val) [65][5]	accuracy_top-1: 72.0588, accuracy_top-5: 93.3824
+2024-04-11 00:48:48,931 - mmcls - INFO - Epoch(val) [66][5]	accuracy_top-1: 80.1471, accuracy_top-5: 97.0588
+2024-04-11 00:48:59,017 - mmcls - INFO - Epoch(val) [67][5]	accuracy_top-1: 77.2059, accuracy_top-5: 97.7941
+2024-04-11 00:49:08,956 - mmcls - INFO - Epoch(val) [68][5]	accuracy_top-1: 73.5294, accuracy_top-5: 94.8529
+2024-04-11 00:49:18,903 - mmcls - INFO - Epoch(val) [69][5]	accuracy_top-1: 75.7353, accuracy_top-5: 97.7941
+2024-04-11 00:49:28,904 - mmcls - INFO - Epoch(val) [70][5]	accuracy_top-1: 81.6176, accuracy_top-5: 97.7941
+2024-04-11 00:49:39,059 - mmcls - INFO - Epoch(val) [71][5]	accuracy_top-1: 74.2647, accuracy_top-5: 97.7941
+2024-04-11 00:49:49,133 - mmcls - INFO - Epoch(val) [72][5]	accuracy_top-1: 77.2059, accuracy_top-5: 97.0588
+2024-04-11 00:49:59,308 - mmcls - INFO - Epoch(val) [73][5]	accuracy_top-1: 76.4706, accuracy_top-5: 97.7941
+2024-04-11 00:50:09,753 - mmcls - INFO - Epoch(val) [74][5]	accuracy_top-1: 80.1471, accuracy_top-5: 97.7941
+2024-04-11 00:50:19,997 - mmcls - INFO - Epoch(val) [75][5]	accuracy_top-1: 76.4706, accuracy_top-5: 98.5294
+2024-04-11 00:50:30,155 - mmcls - INFO - Epoch(val) [76][5]	accuracy_top-1: 75.0000, accuracy_top-5: 97.0588
+2024-04-11 00:50:40,278 - mmcls - INFO - Epoch(val) [77][5]	accuracy_top-1: 75.7353, accuracy_top-5: 97.0588
+2024-04-11 00:50:50,597 - mmcls - INFO - Epoch(val) [78][5]	accuracy_top-1: 77.2059, accuracy_top-5: 99.2647
+2024-04-11 00:51:00,784 - mmcls - INFO - Epoch(val) [79][5]	accuracy_top-1: 77.2059, accuracy_top-5: 97.0588
+2024-04-11 00:51:11,068 - mmcls - INFO - Epoch(val) [80][5]	accuracy_top-1: 75.7353, accuracy_top-5: 97.7941
+2024-04-11 00:51:21,256 - mmcls - INFO - Epoch(val) [81][5]	accuracy_top-1: 68.3824, accuracy_top-5: 97.0588
+2024-04-11 00:51:31,722 - mmcls - INFO - Epoch(val) [82][5]	accuracy_top-1: 78.6765, accuracy_top-5: 97.7941
+2024-04-11 00:51:41,688 - mmcls - INFO - Epoch(val) [83][5]	accuracy_top-1: 78.6765, accuracy_top-5: 98.5294
+2024-04-11 00:51:51,828 - mmcls - INFO - Epoch(val) [84][5]	accuracy_top-1: 81.6176, accuracy_top-5: 97.7941
+2024-04-11 00:52:01,937 - mmcls - INFO - Epoch(val) [85][5]	accuracy_top-1: 77.9412, accuracy_top-5: 97.0588
+2024-04-11 00:52:12,139 - mmcls - INFO - Epoch(val) [86][5]	accuracy_top-1: 80.1471, accuracy_top-5: 95.5882
+2024-04-11 00:52:22,296 - mmcls - INFO - Epoch(val) [87][5]	accuracy_top-1: 73.5294, accuracy_top-5: 97.7941
+2024-04-11 00:52:32,407 - mmcls - INFO - Epoch(val) [88][5]	accuracy_top-1: 77.9412, accuracy_top-5: 97.7941
+2024-04-11 00:52:42,333 - mmcls - INFO - Epoch(val) [89][5]	accuracy_top-1: 82.3529, accuracy_top-5: 98.5294
+2024-04-11 00:52:52,629 - mmcls - INFO - Epoch(val) [90][5]	accuracy_top-1: 77.9412, accuracy_top-5: 99.2647
+2024-04-11 00:53:02,787 - mmcls - INFO - Epoch(val) [91][5]	accuracy_top-1: 77.9412, accuracy_top-5: 97.0588
+2024-04-11 00:53:13,151 - mmcls - INFO - Epoch(val) [92][5]	accuracy_top-1: 82.3529, accuracy_top-5: 98.5294
+2024-04-11 00:53:23,864 - mmcls - INFO - Epoch(val) [93][5]	accuracy_top-1: 72.0588, accuracy_top-5: 98.5294
+2024-04-11 00:53:34,048 - mmcls - INFO - Epoch(val) [94][5]	accuracy_top-1: 80.1471, accuracy_top-5: 97.7941
+2024-04-11 00:53:44,045 - mmcls - INFO - Epoch(val) [95][5]	accuracy_top-1: 79.4118, accuracy_top-5: 98.5294
+2024-04-11 00:53:54,186 - mmcls - INFO - Epoch(val) [96][5]	accuracy_top-1: 81.6176, accuracy_top-5: 97.7941
+2024-04-11 00:54:04,127 - mmcls - INFO - Epoch(val) [97][5]	accuracy_top-1: 70.5882, accuracy_top-5: 97.0588
+2024-04-11 00:54:14,164 - mmcls - INFO - Epoch(val) [98][5]	accuracy_top-1: 78.6765, accuracy_top-5: 98.5294
+2024-04-11 00:54:24,315 - mmcls - INFO - Epoch(val) [99][5]	accuracy_top-1: 85.2941, accuracy_top-5: 97.0588
+2024-04-11 00:54:33,153 - mmcls - INFO - Saving checkpoint at 100 epochs
+2024-04-11 00:54:35,239 - mmcls - INFO - Epoch(val) [100][5]	accuracy_top-1: 83.0882, accuracy_top-5: 97.0588
+2024-04-11 00:54:45,620 - mmcls - INFO - Epoch(val) [101][5]	accuracy_top-1: 83.0882, accuracy_top-5: 97.7941
+2024-04-11 00:54:55,862 - mmcls - INFO - Epoch(val) [102][5]	accuracy_top-1: 86.0294, accuracy_top-5: 99.2647
+2024-04-11 00:55:06,073 - mmcls - INFO - Epoch(val) [103][5]	accuracy_top-1: 84.5588, accuracy_top-5: 98.5294
+2024-04-11 00:55:16,185 - mmcls - INFO - Epoch(val) [104][5]	accuracy_top-1: 86.0294, accuracy_top-5: 98.5294
+2024-04-11 00:55:26,396 - mmcls - INFO - Epoch(val) [105][5]	accuracy_top-1: 84.5588, accuracy_top-5: 98.5294
+2024-04-11 00:55:36,608 - mmcls - INFO - Epoch(val) [106][5]	accuracy_top-1: 81.6176, accuracy_top-5: 98.5294
+2024-04-11 00:55:46,504 - mmcls - INFO - Epoch(val) [107][5]	accuracy_top-1: 85.2941, accuracy_top-5: 98.5294
+2024-04-11 00:55:56,505 - mmcls - INFO - Epoch(val) [108][5]	accuracy_top-1: 83.0882, accuracy_top-5: 99.2647
+2024-04-11 00:56:06,420 - mmcls - INFO - Epoch(val) [109][5]	accuracy_top-1: 85.2941, accuracy_top-5: 99.2647
+2024-04-11 00:56:16,637 - mmcls - INFO - Epoch(val) [110][5]	accuracy_top-1: 85.2941, accuracy_top-5: 99.2647
+2024-04-11 00:56:26,839 - mmcls - INFO - Epoch(val) [111][5]	accuracy_top-1: 86.0294, accuracy_top-5: 99.2647
+2024-04-11 00:56:36,753 - mmcls - INFO - Epoch(val) [112][5]	accuracy_top-1: 84.5588, accuracy_top-5: 98.5294
+2024-04-11 00:56:47,087 - mmcls - INFO - Epoch(val) [113][5]	accuracy_top-1: 85.2941, accuracy_top-5: 98.5294
+2024-04-11 00:56:57,317 - mmcls - INFO - Epoch(val) [114][5]	accuracy_top-1: 85.2941, accuracy_top-5: 99.2647
+2024-04-11 00:57:07,563 - mmcls - INFO - Epoch(val) [115][5]	accuracy_top-1: 85.2941, accuracy_top-5: 99.2647
+2024-04-11 00:57:17,808 - mmcls - INFO - Epoch(val) [116][5]	accuracy_top-1: 84.5588, accuracy_top-5: 98.5294
+2024-04-11 00:57:27,933 - mmcls - INFO - Epoch(val) [117][5]	accuracy_top-1: 84.5588, accuracy_top-5: 99.2647
+2024-04-11 00:57:38,544 - mmcls - INFO - Epoch(val) [118][5]	accuracy_top-1: 86.7647, accuracy_top-5: 98.5294
+2024-04-11 00:57:48,845 - mmcls - INFO - Epoch(val) [119][5]	accuracy_top-1: 86.7647, accuracy_top-5: 98.5294
+2024-04-11 00:57:59,277 - mmcls - INFO - Epoch(val) [120][5]	accuracy_top-1: 86.0294, accuracy_top-5: 99.2647
+2024-04-11 00:58:09,560 - mmcls - INFO - Epoch(val) [121][5]	accuracy_top-1: 85.2941, accuracy_top-5: 99.2647
+2024-04-11 00:58:19,990 - mmcls - INFO - Epoch(val) [122][5]	accuracy_top-1: 83.8235, accuracy_top-5: 98.5294
+2024-04-11 00:58:30,289 - mmcls - INFO - Epoch(val) [123][5]	accuracy_top-1: 84.5588, accuracy_top-5: 98.5294
+2024-04-11 00:58:40,725 - mmcls - INFO - Epoch(val) [124][5]	accuracy_top-1: 83.8235, accuracy_top-5: 98.5294
+2024-04-11 00:58:51,094 - mmcls - INFO - Epoch(val) [125][5]	accuracy_top-1: 85.2941, accuracy_top-5: 99.2647
+2024-04-11 00:59:01,232 - mmcls - INFO - Epoch(val) [126][5]	accuracy_top-1: 83.8235, accuracy_top-5: 99.2647
+2024-04-11 00:59:11,485 - mmcls - INFO - Epoch(val) [127][5]	accuracy_top-1: 86.0294, accuracy_top-5: 99.2647
+2024-04-11 00:59:21,899 - mmcls - INFO - Epoch(val) [128][5]	accuracy_top-1: 83.8235, accuracy_top-5: 99.2647
+2024-04-11 00:59:32,167 - mmcls - INFO - Epoch(val) [129][5]	accuracy_top-1: 83.0882, accuracy_top-5: 99.2647
+2024-04-11 00:59:42,329 - mmcls - INFO - Epoch(val) [130][5]	accuracy_top-1: 84.5588, accuracy_top-5: 99.2647
+2024-04-11 00:59:52,184 - mmcls - INFO - Epoch(val) [131][5]	accuracy_top-1: 83.0882, accuracy_top-5: 98.5294
+2024-04-11 01:00:02,386 - mmcls - INFO - Epoch(val) [132][5]	accuracy_top-1: 85.2941, accuracy_top-5: 98.5294
+2024-04-11 01:00:12,733 - mmcls - INFO - Epoch(val) [133][5]	accuracy_top-1: 84.5588, accuracy_top-5: 97.7941
+2024-04-11 01:00:23,265 - mmcls - INFO - Epoch(val) [134][5]	accuracy_top-1: 83.0882, accuracy_top-5: 97.7941
+2024-04-11 01:00:33,125 - mmcls - INFO - Epoch(val) [135][5]	accuracy_top-1: 83.8235, accuracy_top-5: 99.2647
+2024-04-11 01:00:43,113 - mmcls - INFO - Epoch(val) [136][5]	accuracy_top-1: 82.3529, accuracy_top-5: 98.5294
+2024-04-11 01:00:53,357 - mmcls - INFO - Epoch(val) [137][5]	accuracy_top-1: 85.2941, accuracy_top-5: 98.5294
+2024-04-11 01:01:03,599 - mmcls - INFO - Epoch(val) [138][5]	accuracy_top-1: 83.0882, accuracy_top-5: 99.2647
+2024-04-11 01:01:13,736 - mmcls - INFO - Epoch(val) [139][5]	accuracy_top-1: 83.8235, accuracy_top-5: 99.2647
+2024-04-11 01:01:24,188 - mmcls - INFO - Epoch(val) [140][5]	accuracy_top-1: 83.0882, accuracy_top-5: 99.2647
+2024-04-11 01:01:34,356 - mmcls - INFO - Epoch(val) [141][5]	accuracy_top-1: 81.6176, accuracy_top-5: 99.2647
+2024-04-11 01:01:44,587 - mmcls - INFO - Epoch(val) [142][5]	accuracy_top-1: 84.5588, accuracy_top-5: 99.2647
+2024-04-11 01:01:55,036 - mmcls - INFO - Epoch(val) [143][5]	accuracy_top-1: 83.8235, accuracy_top-5: 99.2647
+2024-04-11 01:02:05,104 - mmcls - INFO - Epoch(val) [144][5]	accuracy_top-1: 86.0294, accuracy_top-5: 99.2647
+2024-04-11 01:02:15,198 - mmcls - INFO - Epoch(val) [145][5]	accuracy_top-1: 83.8235, accuracy_top-5: 99.2647
+2024-04-11 01:02:25,302 - mmcls - INFO - Epoch(val) [146][5]	accuracy_top-1: 85.2941, accuracy_top-5: 98.5294
+2024-04-11 01:02:35,241 - mmcls - INFO - Epoch(val) [147][5]	accuracy_top-1: 83.8235, accuracy_top-5: 98.5294
+2024-04-11 01:02:45,163 - mmcls - INFO - Epoch(val) [148][5]	accuracy_top-1: 85.2941, accuracy_top-5: 100.0000
+2024-04-11 01:02:55,299 - mmcls - INFO - Epoch(val) [149][5]	accuracy_top-1: 83.8235, accuracy_top-5: 98.5294
+2024-04-11 01:03:05,620 - mmcls - INFO - Epoch(val) [150][5]	accuracy_top-1: 85.2941, accuracy_top-5: 98.5294
+2024-04-11 01:03:15,707 - mmcls - INFO - Epoch(val) [151][5]	accuracy_top-1: 84.5588, accuracy_top-5: 98.5294
+2024-04-11 01:03:25,838 - mmcls - INFO - Epoch(val) [152][5]	accuracy_top-1: 85.2941, accuracy_top-5: 98.5294
+2024-04-11 01:03:35,844 - mmcls - INFO - Epoch(val) [153][5]	accuracy_top-1: 83.8235, accuracy_top-5: 98.5294
+2024-04-11 01:03:45,938 - mmcls - INFO - Epoch(val) [154][5]	accuracy_top-1: 83.8235, accuracy_top-5: 98.5294
+2024-04-11 01:03:55,819 - mmcls - INFO - Epoch(val) [155][5]	accuracy_top-1: 85.2941, accuracy_top-5: 98.5294
+2024-04-11 01:04:06,088 - mmcls - INFO - Epoch(val) [156][5]	accuracy_top-1: 84.5588, accuracy_top-5: 98.5294
+2024-04-11 01:04:16,350 - mmcls - INFO - Epoch(val) [157][5]	accuracy_top-1: 85.2941, accuracy_top-5: 98.5294
+2024-04-11 01:04:26,817 - mmcls - INFO - Epoch(val) [158][5]	accuracy_top-1: 84.5588, accuracy_top-5: 98.5294
+2024-04-11 01:04:37,360 - mmcls - INFO - Epoch(val) [159][5]	accuracy_top-1: 84.5588, accuracy_top-5: 98.5294
+2024-04-11 01:04:47,483 - mmcls - INFO - Epoch(val) [160][5]	accuracy_top-1: 85.2941, accuracy_top-5: 98.5294

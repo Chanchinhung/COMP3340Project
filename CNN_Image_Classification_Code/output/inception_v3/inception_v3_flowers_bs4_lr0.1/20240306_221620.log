@@ -1,23 +1,42 @@
+2024-03-06 22:16:20,927 - mmcls - INFO - Environment info:
+------------------------------------------------------------
+sys.platform: linux
+Python: 3.7.16 (default, Jan 17 2023, 22:20:44) [GCC 11.2.0]
+CUDA available: False
+GCC: n/a
+PyTorch: 1.7.1
+PyTorch compiling details: PyTorch built with:
+  - GCC 7.3
+  - C++ Version: 201402
+  - Intel(R) oneAPI Math Kernel Library Version 2021.4-Product Build 20210904 for Intel(R) 64 architecture applications
+  - Intel(R) MKL-DNN v1.6.0 (Git Hash 5ef631a030a6f73131c77892041042805a06064f)
+  - OpenMP 201511 (a.k.a. OpenMP 4.5)
+  - NNPACK is enabled
+  - CPU capability usage: AVX2
+  - Build settings: BLAS=MKL, BUILD_TYPE=Release, CXX_FLAGS= -Wno-deprecated -fvisibility-inlines-hidden -DUSE_PTHREADPOOL -fopenmp -DNDEBUG -DUSE_FBGEMM -DUSE_QNNPACK -DUSE_PYTORCH_QNNPACK -DUSE_XNNPACK -DUSE_VULKAN_WRAPPER -O2 -fPIC -Wno-narrowing -Wall -Wextra -Werror=return-type -Wno-missing-field-initializers -Wno-type-limits -Wno-array-bounds -Wno-unknown-pragmas -Wno-sign-compare -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function -Wno-unused-result -Wno-unused-local-typedefs -Wno-strict-overflow -Wno-strict-aliasing -Wno-error=deprecated-declarations -Wno-stringop-overflow -Wno-psabi -Wno-error=pedantic -Wno-error=redundant-decls -Wno-error=old-style-cast -fdiagnostics-color=always -faligned-new -Wno-unused-but-set-variable -Wno-maybe-uninitialized -fno-math-errno -fno-trapping-math -Werror=format -Wno-stringop-overflow, PERF_WITH_AVX=1, PERF_WITH_AVX2=1, PERF_WITH_AVX512=1, USE_CUDA=ON, USE_EXCEPTION_PTR=1, USE_GFLAGS=OFF, USE_GLOG=OFF, USE_MKL=ON, USE_MKLDNN=ON, USE_MPI=OFF, USE_NCCL=ON, USE_NNPACK=ON, USE_OPENMP=ON, 
+
+TorchVision: 0.8.2
+OpenCV: 4.9.0
+MMCV: 1.5.0
+MMCV Compiler: GCC 11.4
+MMCV CUDA Compiler: 11.8
+MMClassification: 0.15.0+ad7f983
+------------------------------------------------------------
+
+2024-03-06 22:16:20,929 - mmcls - INFO - Distributed training: False
+2024-03-06 22:16:21,188 - mmcls - INFO - Config:
 model = dict(
     type='ImageClassifier',
-    backbone=dict(
-        type='ResNet',
-        depth=18,
-        num_stages=4,
-        out_indices=(3, ),
-        style='pytorch'),
-    neck=dict(type='GlobalAveragePooling'),
+    backbone=dict(type='InceptionV3', num_classes=17, aux_logits=False),
+    neck=None,
     head=dict(
-        type='LinearClsHead',
-        num_classes=17,
-        in_channels=512,
-        loss=dict(type='CrossEntropyLoss', loss_weight=1.0)))
+        type='ClsHead', loss=dict(type='CrossEntropyLoss', loss_weight=1.0)))
 dataset_type = 'Flowers'
 img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
 train_pipeline = [
     dict(type='LoadImageFromFile'),
-    dict(type='RandomResizedCrop', size=224),
+    dict(type='RandomResizedCrop', size=224, backend='pillow'),
     dict(type='RandomFlip', flip_prob=0.5, direction='horizontal'),
     dict(
         type='Normalize',
@@ -30,7 +49,7 @@ train_pipeline = [
 ]
 test_pipeline = [
     dict(type='LoadImageFromFile'),
-    dict(type='Resize', size=(256, -1)),
+    dict(type='Resize', size=(256, -1), backend='pillow'),
     dict(type='CenterCrop', crop_size=224),
     dict(
         type='Normalize',
@@ -41,7 +60,7 @@ test_pipeline = [
     dict(type='Collect', keys=['img'])
 ]
 data = dict(
-    samples_per_gpu=32,
+    samples_per_gpu=4,
     workers_per_gpu=1,
     train=dict(
         type='Flowers',
@@ -49,7 +68,7 @@ data = dict(
         ann_file='data/flowers/meta/train.txt',
         pipeline=[
             dict(type='LoadImageFromFile'),
-            dict(type='RandomResizedCrop', size=224),
+            dict(type='RandomResizedCrop', size=224, backend='pillow'),
             dict(type='RandomFlip', flip_prob=0.5, direction='horizontal'),
             dict(
                 type='Normalize',
@@ -66,7 +85,7 @@ data = dict(
         ann_file='data/flowers/meta/val.txt',
         pipeline=[
             dict(type='LoadImageFromFile'),
-            dict(type='Resize', size=(256, -1)),
+            dict(type='Resize', size=(256, -1), backend='pillow'),
             dict(type='CenterCrop', crop_size=224),
             dict(
                 type='Normalize',
@@ -82,7 +101,7 @@ data = dict(
         ann_file='data/flowers/meta/test.txt',
         pipeline=[
             dict(type='LoadImageFromFile'),
-            dict(type='Resize', size=(256, -1)),
+            dict(type='Resize', size=(256, -1), backend='pillow'),
             dict(type='CenterCrop', crop_size=224),
             dict(
                 type='Normalize',
@@ -93,7 +112,7 @@ data = dict(
             dict(type='Collect', keys=['img'])
         ]))
 evaluation = dict(interval=1, metric='accuracy')
-optimizer = dict(type='SGD', lr=0.02, momentum=0.9, weight_decay=0.0001)
+optimizer = dict(type='SGD', lr=0.1, momentum=0.9, weight_decay=0.0001)
 optimizer_config = dict(grad_clip=None)
 lr_config = dict(policy='step', step=[100, 150])
 runner = dict(type='EpochBasedRunner', max_epochs=200)
@@ -104,5 +123,6 @@ log_level = 'INFO'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]
-work_dir = 'output/resnet18_flowers_bs128'
+work_dir = 'output/inception_v3/inception_v3_flowers_bs4_lr0.1'
 gpu_ids = range(0, 1)
+

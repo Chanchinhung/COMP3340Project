@@ -1,0 +1,1390 @@
+2024-04-13 21:23:20,368 - mmcls - INFO - Environment info:
+------------------------------------------------------------
+sys.platform: linux
+Python: 3.7.16 (default, Jan 17 2023, 22:20:44) [GCC 11.2.0]
+CUDA available: True
+GPU 0: NVIDIA GeForce RTX 2080 Ti
+CUDA_HOME: /usr/local/cuda
+NVCC: Cuda compilation tools, release 11.8, V11.8.89
+GCC: gcc (Ubuntu 11.4.0-1ubuntu1~22.04) 11.4.0
+PyTorch: 1.7.1
+PyTorch compiling details: PyTorch built with:
+  - GCC 7.3
+  - C++ Version: 201402
+  - Intel(R) oneAPI Math Kernel Library Version 2021.4-Product Build 20210904 for Intel(R) 64 architecture applications
+  - Intel(R) MKL-DNN v1.6.0 (Git Hash 5ef631a030a6f73131c77892041042805a06064f)
+  - OpenMP 201511 (a.k.a. OpenMP 4.5)
+  - NNPACK is enabled
+  - CPU capability usage: AVX2
+  - CUDA Runtime 10.1
+  - NVCC architecture flags: -gencode;arch=compute_37,code=sm_37;-gencode;arch=compute_50,code=sm_50;-gencode;arch=compute_60,code=sm_60;-gencode;arch=compute_61,code=sm_61;-gencode;arch=compute_70,code=sm_70;-gencode;arch=compute_75,code=sm_75;-gencode;arch=compute_37,code=compute_37
+  - CuDNN 7.6.3
+  - Magma 2.5.2
+  - Build settings: BLAS=MKL, BUILD_TYPE=Release, CXX_FLAGS= -Wno-deprecated -fvisibility-inlines-hidden -DUSE_PTHREADPOOL -fopenmp -DNDEBUG -DUSE_FBGEMM -DUSE_QNNPACK -DUSE_PYTORCH_QNNPACK -DUSE_XNNPACK -DUSE_VULKAN_WRAPPER -O2 -fPIC -Wno-narrowing -Wall -Wextra -Werror=return-type -Wno-missing-field-initializers -Wno-type-limits -Wno-array-bounds -Wno-unknown-pragmas -Wno-sign-compare -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function -Wno-unused-result -Wno-unused-local-typedefs -Wno-strict-overflow -Wno-strict-aliasing -Wno-error=deprecated-declarations -Wno-stringop-overflow -Wno-psabi -Wno-error=pedantic -Wno-error=redundant-decls -Wno-error=old-style-cast -fdiagnostics-color=always -faligned-new -Wno-unused-but-set-variable -Wno-maybe-uninitialized -fno-math-errno -fno-trapping-math -Werror=format -Wno-stringop-overflow, PERF_WITH_AVX=1, PERF_WITH_AVX2=1, PERF_WITH_AVX512=1, USE_CUDA=ON, USE_EXCEPTION_PTR=1, USE_GFLAGS=OFF, USE_GLOG=OFF, USE_MKL=ON, USE_MKLDNN=ON, USE_MPI=OFF, USE_NCCL=ON, USE_NNPACK=ON, USE_OPENMP=ON, 
+
+TorchVision: 0.8.2
+OpenCV: 4.9.0
+MMCV: 1.5.0
+MMCV Compiler: n/a
+MMCV CUDA Compiler: n/a
+MMClassification: 0.15.0+2b78fde
+------------------------------------------------------------
+
+2024-04-13 21:23:20,368 - mmcls - INFO - Distributed training: False
+2024-04-13 21:23:20,592 - mmcls - INFO - Config:
+model = dict(
+    type='ImageClassifier',
+    backbone=dict(
+        type='SwinTransformer', arch='base', img_size=224, drop_path_rate=0),
+    neck=dict(type='GlobalAveragePooling'),
+    head=dict(
+        type='LinearClsHead',
+        num_classes=17,
+        in_channels=1024,
+        init_cfg=None,
+        loss=dict(
+            type='LabelSmoothLoss', label_smooth_val=0.1, mode='original'),
+        cal_acc=False),
+    init_cfg=[
+        dict(type='TruncNormal', layer='Linear', std=0.02, bias=0.0),
+        dict(type='Constant', layer='LayerNorm', val=1.0, bias=0.0)
+    ],
+    train_cfg=dict(augments=[
+        dict(type='BatchMixup', alpha=0.8, num_classes=17, prob=0.5),
+        dict(type='BatchCutMix', alpha=1.0, num_classes=17, prob=0.5)
+    ]))
+dataset_type = 'Flowers'
+img_norm_cfg = dict(
+    mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
+train_pipeline = [
+    dict(type='LoadImageFromFile'),
+    dict(type='RandomResizedCrop', size=224),
+    dict(type='RandomFlip', flip_prob=0.5, direction='horizontal'),
+    dict(
+        type='Normalize',
+        mean=[123.675, 116.28, 103.53],
+        std=[58.395, 57.12, 57.375],
+        to_rgb=True),
+    dict(type='ImageToTensor', keys=['img']),
+    dict(type='ToTensor', keys=['gt_label']),
+    dict(type='Collect', keys=['img', 'gt_label'])
+]
+test_pipeline = [
+    dict(type='LoadImageFromFile'),
+    dict(type='Resize', size=(256, -1)),
+    dict(type='CenterCrop', crop_size=224),
+    dict(
+        type='Normalize',
+        mean=[123.675, 116.28, 103.53],
+        std=[58.395, 57.12, 57.375],
+        to_rgb=True),
+    dict(type='ImageToTensor', keys=['img']),
+    dict(type='Collect', keys=['img'])
+]
+data = dict(
+    samples_per_gpu=16,
+    workers_per_gpu=1,
+    train=dict(
+        type='Flowers',
+        data_prefix='data/flowers/train',
+        ann_file='data/flowers/meta/train.txt',
+        pipeline=[
+            dict(type='LoadImageFromFile'),
+            dict(type='RandomResizedCrop', size=224),
+            dict(type='RandomFlip', flip_prob=0.5, direction='horizontal'),
+            dict(
+                type='Normalize',
+                mean=[123.675, 116.28, 103.53],
+                std=[58.395, 57.12, 57.375],
+                to_rgb=True),
+            dict(type='ImageToTensor', keys=['img']),
+            dict(type='ToTensor', keys=['gt_label']),
+            dict(type='Collect', keys=['img', 'gt_label'])
+        ]),
+    val=dict(
+        type='Flowers',
+        data_prefix='data/flowers/val',
+        ann_file='data/flowers/meta/val.txt',
+        pipeline=[
+            dict(type='LoadImageFromFile'),
+            dict(type='Resize', size=(256, -1)),
+            dict(type='CenterCrop', crop_size=224),
+            dict(
+                type='Normalize',
+                mean=[123.675, 116.28, 103.53],
+                std=[58.395, 57.12, 57.375],
+                to_rgb=True),
+            dict(type='ImageToTensor', keys=['img']),
+            dict(type='Collect', keys=['img'])
+        ]),
+    test=dict(
+        type='Flowers',
+        data_prefix='data/flowers/test',
+        ann_file='data/flowers/meta/test.txt',
+        pipeline=[
+            dict(type='LoadImageFromFile'),
+            dict(type='Resize', size=(256, -1)),
+            dict(type='CenterCrop', crop_size=224),
+            dict(
+                type='Normalize',
+                mean=[123.675, 116.28, 103.53],
+                std=[58.395, 57.12, 57.375],
+                to_rgb=True),
+            dict(type='ImageToTensor', keys=['img']),
+            dict(type='Collect', keys=['img'])
+        ]))
+evaluation = dict(interval=1, metric='accuracy')
+optimizer = dict(type='SGD', lr=0.001, momentum=0.9, weight_decay=0.0001)
+optimizer_config = dict(grad_clip=None)
+lr_config = dict(policy='step', step=[100, 150])
+runner = dict(type='EpochBasedRunner', max_epochs=200)
+checkpoint_config = dict(interval=100)
+log_config = dict(interval=100, hooks=[dict(type='TextLoggerHook')])
+dist_params = dict(backend='nccl')
+log_level = 'INFO'
+load_from = None
+resume_from = None
+workflow = [('train', 1)]
+work_dir = 'output/swin_transformer_no_StochasticDepth/bs16/lr0.001'
+gpu_ids = range(0, 1)
+
+2024-04-13 21:23:21,470 - mmcls - INFO - initialize ImageClassifier with init_cfg [{'type': 'TruncNormal', 'layer': 'Linear', 'std': 0.02, 'bias': 0.0}, {'type': 'Constant', 'layer': 'LayerNorm', 'val': 1.0, 'bias': 0.0}]
+Name of parameter - Initialization information
+
+backbone.patch_embed.projection.weight - torch.Size([128, 3, 4, 4]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.patch_embed.projection.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.patch_embed.norm.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.patch_embed.norm.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.0.blocks.0.norm1.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.0.blocks.0.norm1.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.0.blocks.0.attn.w_msa.relative_position_bias_table - torch.Size([169, 4]): 
+Initialized by user-defined `init_weights` in WindowMSA  
+
+backbone.stages.0.blocks.0.attn.w_msa.qkv.weight - torch.Size([384, 128]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.0.blocks.0.attn.w_msa.qkv.bias - torch.Size([384]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.0.blocks.0.attn.w_msa.proj.weight - torch.Size([128, 128]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.0.blocks.0.attn.w_msa.proj.bias - torch.Size([128]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.0.blocks.0.norm2.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.0.blocks.0.norm2.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.0.blocks.0.ffn.layers.0.0.weight - torch.Size([512, 128]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.0.blocks.0.ffn.layers.0.0.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.0.blocks.0.ffn.layers.1.weight - torch.Size([128, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.0.blocks.0.ffn.layers.1.bias - torch.Size([128]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.0.blocks.1.norm1.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.0.blocks.1.norm1.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.0.blocks.1.attn.w_msa.relative_position_bias_table - torch.Size([169, 4]): 
+Initialized by user-defined `init_weights` in WindowMSA  
+
+backbone.stages.0.blocks.1.attn.w_msa.qkv.weight - torch.Size([384, 128]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.0.blocks.1.attn.w_msa.qkv.bias - torch.Size([384]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.0.blocks.1.attn.w_msa.proj.weight - torch.Size([128, 128]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.0.blocks.1.attn.w_msa.proj.bias - torch.Size([128]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.0.blocks.1.norm2.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.0.blocks.1.norm2.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.0.blocks.1.ffn.layers.0.0.weight - torch.Size([512, 128]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.0.blocks.1.ffn.layers.0.0.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.0.blocks.1.ffn.layers.1.weight - torch.Size([128, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.0.blocks.1.ffn.layers.1.bias - torch.Size([128]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.0.downsample.norm.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.0.downsample.norm.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.0.downsample.reduction.weight - torch.Size([256, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.1.blocks.0.norm1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.1.blocks.0.norm1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.1.blocks.0.attn.w_msa.relative_position_bias_table - torch.Size([169, 8]): 
+Initialized by user-defined `init_weights` in WindowMSA  
+
+backbone.stages.1.blocks.0.attn.w_msa.qkv.weight - torch.Size([768, 256]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.1.blocks.0.attn.w_msa.qkv.bias - torch.Size([768]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.1.blocks.0.attn.w_msa.proj.weight - torch.Size([256, 256]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.1.blocks.0.attn.w_msa.proj.bias - torch.Size([256]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.1.blocks.0.norm2.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.1.blocks.0.norm2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.1.blocks.0.ffn.layers.0.0.weight - torch.Size([1024, 256]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.1.blocks.0.ffn.layers.0.0.bias - torch.Size([1024]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.1.blocks.0.ffn.layers.1.weight - torch.Size([256, 1024]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.1.blocks.0.ffn.layers.1.bias - torch.Size([256]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.1.blocks.1.norm1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.1.blocks.1.norm1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.1.blocks.1.attn.w_msa.relative_position_bias_table - torch.Size([169, 8]): 
+Initialized by user-defined `init_weights` in WindowMSA  
+
+backbone.stages.1.blocks.1.attn.w_msa.qkv.weight - torch.Size([768, 256]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.1.blocks.1.attn.w_msa.qkv.bias - torch.Size([768]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.1.blocks.1.attn.w_msa.proj.weight - torch.Size([256, 256]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.1.blocks.1.attn.w_msa.proj.bias - torch.Size([256]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.1.blocks.1.norm2.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.1.blocks.1.norm2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.1.blocks.1.ffn.layers.0.0.weight - torch.Size([1024, 256]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.1.blocks.1.ffn.layers.0.0.bias - torch.Size([1024]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.1.blocks.1.ffn.layers.1.weight - torch.Size([256, 1024]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.1.blocks.1.ffn.layers.1.bias - torch.Size([256]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.1.downsample.norm.weight - torch.Size([1024]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.1.downsample.norm.bias - torch.Size([1024]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.1.downsample.reduction.weight - torch.Size([512, 1024]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.0.norm1.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.0.norm1.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.0.attn.w_msa.relative_position_bias_table - torch.Size([169, 16]): 
+Initialized by user-defined `init_weights` in WindowMSA  
+
+backbone.stages.2.blocks.0.attn.w_msa.qkv.weight - torch.Size([1536, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.0.attn.w_msa.qkv.bias - torch.Size([1536]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.0.attn.w_msa.proj.weight - torch.Size([512, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.0.attn.w_msa.proj.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.0.norm2.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.0.norm2.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.0.ffn.layers.0.0.weight - torch.Size([2048, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.0.ffn.layers.0.0.bias - torch.Size([2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.0.ffn.layers.1.weight - torch.Size([512, 2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.0.ffn.layers.1.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.1.norm1.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.1.norm1.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.1.attn.w_msa.relative_position_bias_table - torch.Size([169, 16]): 
+Initialized by user-defined `init_weights` in WindowMSA  
+
+backbone.stages.2.blocks.1.attn.w_msa.qkv.weight - torch.Size([1536, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.1.attn.w_msa.qkv.bias - torch.Size([1536]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.1.attn.w_msa.proj.weight - torch.Size([512, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.1.attn.w_msa.proj.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.1.norm2.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.1.norm2.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.1.ffn.layers.0.0.weight - torch.Size([2048, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.1.ffn.layers.0.0.bias - torch.Size([2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.1.ffn.layers.1.weight - torch.Size([512, 2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.1.ffn.layers.1.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.2.norm1.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.2.norm1.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.2.attn.w_msa.relative_position_bias_table - torch.Size([169, 16]): 
+Initialized by user-defined `init_weights` in WindowMSA  
+
+backbone.stages.2.blocks.2.attn.w_msa.qkv.weight - torch.Size([1536, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.2.attn.w_msa.qkv.bias - torch.Size([1536]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.2.attn.w_msa.proj.weight - torch.Size([512, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.2.attn.w_msa.proj.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.2.norm2.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.2.norm2.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.2.ffn.layers.0.0.weight - torch.Size([2048, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.2.ffn.layers.0.0.bias - torch.Size([2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.2.ffn.layers.1.weight - torch.Size([512, 2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.2.ffn.layers.1.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.3.norm1.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.3.norm1.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.3.attn.w_msa.relative_position_bias_table - torch.Size([169, 16]): 
+Initialized by user-defined `init_weights` in WindowMSA  
+
+backbone.stages.2.blocks.3.attn.w_msa.qkv.weight - torch.Size([1536, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.3.attn.w_msa.qkv.bias - torch.Size([1536]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.3.attn.w_msa.proj.weight - torch.Size([512, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.3.attn.w_msa.proj.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.3.norm2.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.3.norm2.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.3.ffn.layers.0.0.weight - torch.Size([2048, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.3.ffn.layers.0.0.bias - torch.Size([2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.3.ffn.layers.1.weight - torch.Size([512, 2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.3.ffn.layers.1.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.4.norm1.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.4.norm1.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.4.attn.w_msa.relative_position_bias_table - torch.Size([169, 16]): 
+Initialized by user-defined `init_weights` in WindowMSA  
+
+backbone.stages.2.blocks.4.attn.w_msa.qkv.weight - torch.Size([1536, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.4.attn.w_msa.qkv.bias - torch.Size([1536]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.4.attn.w_msa.proj.weight - torch.Size([512, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.4.attn.w_msa.proj.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.4.norm2.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.4.norm2.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.4.ffn.layers.0.0.weight - torch.Size([2048, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.4.ffn.layers.0.0.bias - torch.Size([2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.4.ffn.layers.1.weight - torch.Size([512, 2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.4.ffn.layers.1.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.5.norm1.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.5.norm1.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.5.attn.w_msa.relative_position_bias_table - torch.Size([169, 16]): 
+Initialized by user-defined `init_weights` in WindowMSA  
+
+backbone.stages.2.blocks.5.attn.w_msa.qkv.weight - torch.Size([1536, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.5.attn.w_msa.qkv.bias - torch.Size([1536]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.5.attn.w_msa.proj.weight - torch.Size([512, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.5.attn.w_msa.proj.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.5.norm2.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.5.norm2.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.5.ffn.layers.0.0.weight - torch.Size([2048, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.5.ffn.layers.0.0.bias - torch.Size([2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.5.ffn.layers.1.weight - torch.Size([512, 2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.5.ffn.layers.1.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.6.norm1.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.6.norm1.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.6.attn.w_msa.relative_position_bias_table - torch.Size([169, 16]): 
+Initialized by user-defined `init_weights` in WindowMSA  
+
+backbone.stages.2.blocks.6.attn.w_msa.qkv.weight - torch.Size([1536, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.6.attn.w_msa.qkv.bias - torch.Size([1536]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.6.attn.w_msa.proj.weight - torch.Size([512, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.6.attn.w_msa.proj.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.6.norm2.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.6.norm2.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.6.ffn.layers.0.0.weight - torch.Size([2048, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.6.ffn.layers.0.0.bias - torch.Size([2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.6.ffn.layers.1.weight - torch.Size([512, 2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.6.ffn.layers.1.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.7.norm1.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.7.norm1.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.7.attn.w_msa.relative_position_bias_table - torch.Size([169, 16]): 
+Initialized by user-defined `init_weights` in WindowMSA  
+
+backbone.stages.2.blocks.7.attn.w_msa.qkv.weight - torch.Size([1536, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.7.attn.w_msa.qkv.bias - torch.Size([1536]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.7.attn.w_msa.proj.weight - torch.Size([512, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.7.attn.w_msa.proj.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.7.norm2.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.7.norm2.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.7.ffn.layers.0.0.weight - torch.Size([2048, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.7.ffn.layers.0.0.bias - torch.Size([2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.7.ffn.layers.1.weight - torch.Size([512, 2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.7.ffn.layers.1.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.8.norm1.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.8.norm1.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.8.attn.w_msa.relative_position_bias_table - torch.Size([169, 16]): 
+Initialized by user-defined `init_weights` in WindowMSA  
+
+backbone.stages.2.blocks.8.attn.w_msa.qkv.weight - torch.Size([1536, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.8.attn.w_msa.qkv.bias - torch.Size([1536]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.8.attn.w_msa.proj.weight - torch.Size([512, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.8.attn.w_msa.proj.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.8.norm2.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.8.norm2.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.8.ffn.layers.0.0.weight - torch.Size([2048, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.8.ffn.layers.0.0.bias - torch.Size([2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.8.ffn.layers.1.weight - torch.Size([512, 2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.8.ffn.layers.1.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.9.norm1.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.9.norm1.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.9.attn.w_msa.relative_position_bias_table - torch.Size([169, 16]): 
+Initialized by user-defined `init_weights` in WindowMSA  
+
+backbone.stages.2.blocks.9.attn.w_msa.qkv.weight - torch.Size([1536, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.9.attn.w_msa.qkv.bias - torch.Size([1536]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.9.attn.w_msa.proj.weight - torch.Size([512, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.9.attn.w_msa.proj.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.9.norm2.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.9.norm2.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.9.ffn.layers.0.0.weight - torch.Size([2048, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.9.ffn.layers.0.0.bias - torch.Size([2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.9.ffn.layers.1.weight - torch.Size([512, 2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.9.ffn.layers.1.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.10.norm1.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.10.norm1.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.10.attn.w_msa.relative_position_bias_table - torch.Size([169, 16]): 
+Initialized by user-defined `init_weights` in WindowMSA  
+
+backbone.stages.2.blocks.10.attn.w_msa.qkv.weight - torch.Size([1536, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.10.attn.w_msa.qkv.bias - torch.Size([1536]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.10.attn.w_msa.proj.weight - torch.Size([512, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.10.attn.w_msa.proj.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.10.norm2.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.10.norm2.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.10.ffn.layers.0.0.weight - torch.Size([2048, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.10.ffn.layers.0.0.bias - torch.Size([2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.10.ffn.layers.1.weight - torch.Size([512, 2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.10.ffn.layers.1.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.11.norm1.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.11.norm1.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.11.attn.w_msa.relative_position_bias_table - torch.Size([169, 16]): 
+Initialized by user-defined `init_weights` in WindowMSA  
+
+backbone.stages.2.blocks.11.attn.w_msa.qkv.weight - torch.Size([1536, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.11.attn.w_msa.qkv.bias - torch.Size([1536]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.11.attn.w_msa.proj.weight - torch.Size([512, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.11.attn.w_msa.proj.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.11.norm2.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.11.norm2.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.11.ffn.layers.0.0.weight - torch.Size([2048, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.11.ffn.layers.0.0.bias - torch.Size([2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.11.ffn.layers.1.weight - torch.Size([512, 2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.11.ffn.layers.1.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.12.norm1.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.12.norm1.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.12.attn.w_msa.relative_position_bias_table - torch.Size([169, 16]): 
+Initialized by user-defined `init_weights` in WindowMSA  
+
+backbone.stages.2.blocks.12.attn.w_msa.qkv.weight - torch.Size([1536, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.12.attn.w_msa.qkv.bias - torch.Size([1536]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.12.attn.w_msa.proj.weight - torch.Size([512, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.12.attn.w_msa.proj.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.12.norm2.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.12.norm2.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.12.ffn.layers.0.0.weight - torch.Size([2048, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.12.ffn.layers.0.0.bias - torch.Size([2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.12.ffn.layers.1.weight - torch.Size([512, 2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.12.ffn.layers.1.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.13.norm1.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.13.norm1.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.13.attn.w_msa.relative_position_bias_table - torch.Size([169, 16]): 
+Initialized by user-defined `init_weights` in WindowMSA  
+
+backbone.stages.2.blocks.13.attn.w_msa.qkv.weight - torch.Size([1536, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.13.attn.w_msa.qkv.bias - torch.Size([1536]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.13.attn.w_msa.proj.weight - torch.Size([512, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.13.attn.w_msa.proj.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.13.norm2.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.13.norm2.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.13.ffn.layers.0.0.weight - torch.Size([2048, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.13.ffn.layers.0.0.bias - torch.Size([2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.13.ffn.layers.1.weight - torch.Size([512, 2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.13.ffn.layers.1.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.14.norm1.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.14.norm1.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.14.attn.w_msa.relative_position_bias_table - torch.Size([169, 16]): 
+Initialized by user-defined `init_weights` in WindowMSA  
+
+backbone.stages.2.blocks.14.attn.w_msa.qkv.weight - torch.Size([1536, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.14.attn.w_msa.qkv.bias - torch.Size([1536]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.14.attn.w_msa.proj.weight - torch.Size([512, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.14.attn.w_msa.proj.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.14.norm2.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.14.norm2.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.14.ffn.layers.0.0.weight - torch.Size([2048, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.14.ffn.layers.0.0.bias - torch.Size([2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.14.ffn.layers.1.weight - torch.Size([512, 2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.14.ffn.layers.1.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.15.norm1.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.15.norm1.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.15.attn.w_msa.relative_position_bias_table - torch.Size([169, 16]): 
+Initialized by user-defined `init_weights` in WindowMSA  
+
+backbone.stages.2.blocks.15.attn.w_msa.qkv.weight - torch.Size([1536, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.15.attn.w_msa.qkv.bias - torch.Size([1536]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.15.attn.w_msa.proj.weight - torch.Size([512, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.15.attn.w_msa.proj.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.15.norm2.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.15.norm2.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.15.ffn.layers.0.0.weight - torch.Size([2048, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.15.ffn.layers.0.0.bias - torch.Size([2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.15.ffn.layers.1.weight - torch.Size([512, 2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.15.ffn.layers.1.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.16.norm1.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.16.norm1.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.16.attn.w_msa.relative_position_bias_table - torch.Size([169, 16]): 
+Initialized by user-defined `init_weights` in WindowMSA  
+
+backbone.stages.2.blocks.16.attn.w_msa.qkv.weight - torch.Size([1536, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.16.attn.w_msa.qkv.bias - torch.Size([1536]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.16.attn.w_msa.proj.weight - torch.Size([512, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.16.attn.w_msa.proj.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.16.norm2.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.16.norm2.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.16.ffn.layers.0.0.weight - torch.Size([2048, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.16.ffn.layers.0.0.bias - torch.Size([2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.16.ffn.layers.1.weight - torch.Size([512, 2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.16.ffn.layers.1.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.17.norm1.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.17.norm1.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.17.attn.w_msa.relative_position_bias_table - torch.Size([169, 16]): 
+Initialized by user-defined `init_weights` in WindowMSA  
+
+backbone.stages.2.blocks.17.attn.w_msa.qkv.weight - torch.Size([1536, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.17.attn.w_msa.qkv.bias - torch.Size([1536]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.17.attn.w_msa.proj.weight - torch.Size([512, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.17.attn.w_msa.proj.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.17.norm2.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.17.norm2.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.17.ffn.layers.0.0.weight - torch.Size([2048, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.17.ffn.layers.0.0.bias - torch.Size([2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.17.ffn.layers.1.weight - torch.Size([512, 2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.17.ffn.layers.1.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.downsample.norm.weight - torch.Size([2048]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.downsample.norm.bias - torch.Size([2048]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.downsample.reduction.weight - torch.Size([1024, 2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.3.blocks.0.norm1.weight - torch.Size([1024]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.3.blocks.0.norm1.bias - torch.Size([1024]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.3.blocks.0.attn.w_msa.relative_position_bias_table - torch.Size([169, 32]): 
+Initialized by user-defined `init_weights` in WindowMSA  
+
+backbone.stages.3.blocks.0.attn.w_msa.qkv.weight - torch.Size([3072, 1024]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.3.blocks.0.attn.w_msa.qkv.bias - torch.Size([3072]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.3.blocks.0.attn.w_msa.proj.weight - torch.Size([1024, 1024]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.3.blocks.0.attn.w_msa.proj.bias - torch.Size([1024]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.3.blocks.0.norm2.weight - torch.Size([1024]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.3.blocks.0.norm2.bias - torch.Size([1024]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.3.blocks.0.ffn.layers.0.0.weight - torch.Size([4096, 1024]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.3.blocks.0.ffn.layers.0.0.bias - torch.Size([4096]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.3.blocks.0.ffn.layers.1.weight - torch.Size([1024, 4096]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.3.blocks.0.ffn.layers.1.bias - torch.Size([1024]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.3.blocks.1.norm1.weight - torch.Size([1024]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.3.blocks.1.norm1.bias - torch.Size([1024]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.3.blocks.1.attn.w_msa.relative_position_bias_table - torch.Size([169, 32]): 
+Initialized by user-defined `init_weights` in WindowMSA  
+
+backbone.stages.3.blocks.1.attn.w_msa.qkv.weight - torch.Size([3072, 1024]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.3.blocks.1.attn.w_msa.qkv.bias - torch.Size([3072]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.3.blocks.1.attn.w_msa.proj.weight - torch.Size([1024, 1024]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.3.blocks.1.attn.w_msa.proj.bias - torch.Size([1024]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.3.blocks.1.norm2.weight - torch.Size([1024]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.3.blocks.1.norm2.bias - torch.Size([1024]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.3.blocks.1.ffn.layers.0.0.weight - torch.Size([4096, 1024]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.3.blocks.1.ffn.layers.0.0.bias - torch.Size([4096]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.3.blocks.1.ffn.layers.1.weight - torch.Size([1024, 4096]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.3.blocks.1.ffn.layers.1.bias - torch.Size([1024]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.norm3.weight - torch.Size([1024]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.norm3.bias - torch.Size([1024]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+head.fc.weight - torch.Size([17, 1024]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+head.fc.bias - torch.Size([17]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+2024-04-13 21:23:25,642 - mmcls - INFO - Start running, host: cshtimmy@gpu2-comp-122, work_dir: /userhome/cs2/cshtimmy/COMP3340Project/CNN_Image_Classification_Code/output/swin_transformer_no_StochasticDepth/bs16/lr0.001
+2024-04-13 21:23:25,643 - mmcls - INFO - Hooks will be executed in the following order:
+before_run:
+(VERY_HIGH   ) StepLrUpdaterHook                  
+(NORMAL      ) CheckpointHook                     
+(NORMAL      ) EvalHook                           
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+before_train_epoch:
+(VERY_HIGH   ) StepLrUpdaterHook                  
+(NORMAL      ) EvalHook                           
+(LOW         ) IterTimerHook                      
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+before_train_iter:
+(VERY_HIGH   ) StepLrUpdaterHook                  
+(NORMAL      ) EvalHook                           
+(LOW         ) IterTimerHook                      
+ -------------------- 
+after_train_iter:
+(ABOVE_NORMAL) OptimizerHook                      
+(NORMAL      ) CheckpointHook                     
+(NORMAL      ) EvalHook                           
+(LOW         ) IterTimerHook                      
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+after_train_epoch:
+(NORMAL      ) CheckpointHook                     
+(NORMAL      ) EvalHook                           
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+before_val_epoch:
+(LOW         ) IterTimerHook                      
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+before_val_iter:
+(LOW         ) IterTimerHook                      
+ -------------------- 
+after_val_iter:
+(LOW         ) IterTimerHook                      
+ -------------------- 
+after_val_epoch:
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+after_run:
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+2024-04-13 21:23:25,643 - mmcls - INFO - workflow: [('train', 1)], max: 200 epochs
+2024-04-13 21:23:25,643 - mmcls - INFO - Checkpoints will be saved to /userhome/cs2/cshtimmy/COMP3340Project/CNN_Image_Classification_Code/output/swin_transformer_no_StochasticDepth/bs16/lr0.001 by HardDiskBackend.
+2024-04-13 21:23:51,000 - mmcls - INFO - Epoch(val) [1][9]	accuracy_top-1: 20.5882, accuracy_top-5: 75.0000
+2024-04-13 21:24:15,469 - mmcls - INFO - Epoch(val) [2][9]	accuracy_top-1: 22.7941, accuracy_top-5: 77.9412
+2024-04-13 21:24:40,031 - mmcls - INFO - Epoch(val) [3][9]	accuracy_top-1: 36.0294, accuracy_top-5: 84.5588
+2024-04-13 21:25:04,543 - mmcls - INFO - Epoch(val) [4][9]	accuracy_top-1: 40.4412, accuracy_top-5: 91.9118
+2024-04-13 21:25:29,506 - mmcls - INFO - Epoch(val) [5][9]	accuracy_top-1: 41.1765, accuracy_top-5: 88.2353
+2024-04-13 21:25:53,813 - mmcls - INFO - Epoch(val) [6][9]	accuracy_top-1: 44.8529, accuracy_top-5: 90.4412
+2024-04-13 21:26:18,787 - mmcls - INFO - Epoch(val) [7][9]	accuracy_top-1: 47.0588, accuracy_top-5: 93.3824
+2024-04-13 21:26:43,927 - mmcls - INFO - Epoch(val) [8][9]	accuracy_top-1: 44.8529, accuracy_top-5: 88.2353
+2024-04-13 21:27:09,111 - mmcls - INFO - Epoch(val) [9][9]	accuracy_top-1: 51.4706, accuracy_top-5: 88.9706
+2024-04-13 21:27:34,251 - mmcls - INFO - Epoch(val) [10][9]	accuracy_top-1: 43.3824, accuracy_top-5: 92.6471
+2024-04-13 21:27:59,221 - mmcls - INFO - Epoch(val) [11][9]	accuracy_top-1: 50.7353, accuracy_top-5: 92.6471
+2024-04-13 21:28:22,673 - mmcls - INFO - Epoch(val) [12][9]	accuracy_top-1: 55.1471, accuracy_top-5: 91.1765
+2024-04-13 21:28:47,040 - mmcls - INFO - Epoch(val) [13][9]	accuracy_top-1: 54.4118, accuracy_top-5: 91.9118
+2024-04-13 21:29:12,597 - mmcls - INFO - Epoch(val) [14][9]	accuracy_top-1: 53.6765, accuracy_top-5: 91.1765
+2024-04-13 21:29:37,852 - mmcls - INFO - Epoch(val) [15][9]	accuracy_top-1: 52.2059, accuracy_top-5: 90.4412
+2024-04-13 21:30:02,004 - mmcls - INFO - Epoch(val) [16][9]	accuracy_top-1: 58.8235, accuracy_top-5: 91.9118
+2024-04-13 21:30:27,246 - mmcls - INFO - Epoch(val) [17][9]	accuracy_top-1: 54.4118, accuracy_top-5: 94.1176
+2024-04-13 21:30:52,533 - mmcls - INFO - Epoch(val) [18][9]	accuracy_top-1: 53.6765, accuracy_top-5: 91.9118
+2024-04-13 21:31:18,261 - mmcls - INFO - Epoch(val) [19][9]	accuracy_top-1: 61.0294, accuracy_top-5: 94.8529
+2024-04-13 21:31:42,220 - mmcls - INFO - Epoch(val) [20][9]	accuracy_top-1: 56.6176, accuracy_top-5: 91.9118
+2024-04-13 21:32:07,190 - mmcls - INFO - Epoch(val) [21][9]	accuracy_top-1: 61.0294, accuracy_top-5: 91.9118
+2024-04-13 21:32:32,011 - mmcls - INFO - Epoch(val) [22][9]	accuracy_top-1: 61.0294, accuracy_top-5: 96.3235
+2024-04-13 21:32:57,683 - mmcls - INFO - Epoch(val) [23][9]	accuracy_top-1: 61.0294, accuracy_top-5: 93.3824
+2024-04-13 21:33:23,019 - mmcls - INFO - Epoch(val) [24][9]	accuracy_top-1: 61.7647, accuracy_top-5: 94.8529
+2024-04-13 21:33:46,728 - mmcls - INFO - Epoch(val) [25][9]	accuracy_top-1: 61.0294, accuracy_top-5: 94.1176
+2024-04-13 21:34:10,684 - mmcls - INFO - Epoch(val) [26][9]	accuracy_top-1: 58.8235, accuracy_top-5: 93.3824
+2024-04-13 21:34:36,105 - mmcls - INFO - Epoch(val) [27][9]	accuracy_top-1: 62.5000, accuracy_top-5: 94.8529
+2024-04-13 21:35:01,351 - mmcls - INFO - Epoch(val) [28][9]	accuracy_top-1: 65.4412, accuracy_top-5: 94.1176
+2024-04-13 21:35:26,366 - mmcls - INFO - Epoch(val) [29][9]	accuracy_top-1: 63.2353, accuracy_top-5: 95.5882
+2024-04-13 21:35:51,795 - mmcls - INFO - Epoch(val) [30][9]	accuracy_top-1: 66.9118, accuracy_top-5: 94.8529
+2024-04-13 21:36:16,939 - mmcls - INFO - Epoch(val) [31][9]	accuracy_top-1: 58.0882, accuracy_top-5: 94.8529
+2024-04-13 21:36:42,773 - mmcls - INFO - Epoch(val) [32][9]	accuracy_top-1: 63.2353, accuracy_top-5: 96.3235
+2024-04-13 21:37:06,370 - mmcls - INFO - Epoch(val) [33][9]	accuracy_top-1: 66.9118, accuracy_top-5: 94.8529
+2024-04-13 21:37:30,270 - mmcls - INFO - Epoch(val) [34][9]	accuracy_top-1: 67.6471, accuracy_top-5: 96.3235
+2024-04-13 21:37:54,217 - mmcls - INFO - Epoch(val) [35][9]	accuracy_top-1: 65.4412, accuracy_top-5: 95.5882
+2024-04-13 21:38:18,084 - mmcls - INFO - Epoch(val) [36][9]	accuracy_top-1: 69.8529, accuracy_top-5: 93.3824
+2024-04-13 21:38:42,113 - mmcls - INFO - Epoch(val) [37][9]	accuracy_top-1: 69.8529, accuracy_top-5: 94.8529
+2024-04-13 21:39:06,228 - mmcls - INFO - Epoch(val) [38][9]	accuracy_top-1: 68.3824, accuracy_top-5: 94.8529
+2024-04-13 21:39:29,600 - mmcls - INFO - Epoch(val) [39][9]	accuracy_top-1: 66.9118, accuracy_top-5: 94.8529
+2024-04-13 21:39:54,708 - mmcls - INFO - Epoch(val) [40][9]	accuracy_top-1: 69.8529, accuracy_top-5: 93.3824
+2024-04-13 21:40:19,961 - mmcls - INFO - Epoch(val) [41][9]	accuracy_top-1: 64.7059, accuracy_top-5: 97.0588
+2024-04-13 21:40:44,361 - mmcls - INFO - Epoch(val) [42][9]	accuracy_top-1: 70.5882, accuracy_top-5: 95.5882
+2024-04-13 21:41:09,091 - mmcls - INFO - Epoch(val) [43][9]	accuracy_top-1: 70.5882, accuracy_top-5: 95.5882
+2024-04-13 21:41:33,455 - mmcls - INFO - Epoch(val) [44][9]	accuracy_top-1: 70.5882, accuracy_top-5: 96.3235
+2024-04-13 21:41:57,889 - mmcls - INFO - Epoch(val) [45][9]	accuracy_top-1: 70.5882, accuracy_top-5: 96.3235
+2024-04-13 21:42:21,625 - mmcls - INFO - Epoch(val) [46][9]	accuracy_top-1: 66.9118, accuracy_top-5: 94.1176
+2024-04-13 21:42:46,833 - mmcls - INFO - Epoch(val) [47][9]	accuracy_top-1: 70.5882, accuracy_top-5: 94.1176
+2024-04-13 21:43:12,897 - mmcls - INFO - Epoch(val) [48][9]	accuracy_top-1: 68.3824, accuracy_top-5: 95.5882
+2024-04-13 21:43:37,506 - mmcls - INFO - Epoch(val) [49][9]	accuracy_top-1: 73.5294, accuracy_top-5: 97.0588
+2024-04-13 21:44:02,132 - mmcls - INFO - Epoch(val) [50][9]	accuracy_top-1: 69.1176, accuracy_top-5: 96.3235
+2024-04-13 21:44:27,628 - mmcls - INFO - Epoch(val) [51][9]	accuracy_top-1: 69.8529, accuracy_top-5: 94.8529
+2024-04-13 21:44:53,602 - mmcls - INFO - Epoch(val) [52][9]	accuracy_top-1: 72.7941, accuracy_top-5: 95.5882
+2024-04-13 21:45:19,346 - mmcls - INFO - Epoch(val) [53][9]	accuracy_top-1: 71.3235, accuracy_top-5: 97.7941
+2024-04-13 21:45:43,837 - mmcls - INFO - Epoch(val) [54][9]	accuracy_top-1: 70.5882, accuracy_top-5: 94.1176
+2024-04-13 21:46:08,826 - mmcls - INFO - Epoch(val) [55][9]	accuracy_top-1: 71.3235, accuracy_top-5: 97.0588
+2024-04-13 21:46:32,749 - mmcls - INFO - Epoch(val) [56][9]	accuracy_top-1: 67.6471, accuracy_top-5: 96.3235
+2024-04-13 21:46:57,645 - mmcls - INFO - Epoch(val) [57][9]	accuracy_top-1: 66.9118, accuracy_top-5: 94.8529
+2024-04-13 21:47:22,483 - mmcls - INFO - Epoch(val) [58][9]	accuracy_top-1: 73.5294, accuracy_top-5: 94.8529
+2024-04-13 21:47:47,835 - mmcls - INFO - Epoch(val) [59][9]	accuracy_top-1: 68.3824, accuracy_top-5: 97.7941
+2024-04-13 21:48:11,880 - mmcls - INFO - Epoch(val) [60][9]	accuracy_top-1: 69.8529, accuracy_top-5: 95.5882
+2024-04-13 21:48:35,739 - mmcls - INFO - Epoch(val) [61][9]	accuracy_top-1: 73.5294, accuracy_top-5: 94.8529
+2024-04-13 21:48:59,279 - mmcls - INFO - Epoch(val) [62][9]	accuracy_top-1: 72.0588, accuracy_top-5: 95.5882
+2024-04-13 21:49:24,960 - mmcls - INFO - Epoch(val) [63][9]	accuracy_top-1: 72.7941, accuracy_top-5: 96.3235
+2024-04-13 21:49:49,508 - mmcls - INFO - Epoch(val) [64][9]	accuracy_top-1: 67.6471, accuracy_top-5: 97.0588
+2024-04-13 21:50:14,852 - mmcls - INFO - Epoch(val) [65][9]	accuracy_top-1: 68.3824, accuracy_top-5: 95.5882
+2024-04-13 21:50:40,440 - mmcls - INFO - Epoch(val) [66][9]	accuracy_top-1: 72.0588, accuracy_top-5: 97.0588
+2024-04-13 21:51:05,534 - mmcls - INFO - Epoch(val) [67][9]	accuracy_top-1: 72.0588, accuracy_top-5: 95.5882
+2024-04-13 21:51:29,948 - mmcls - INFO - Epoch(val) [68][9]	accuracy_top-1: 72.7941, accuracy_top-5: 95.5882
+2024-04-13 21:51:54,590 - mmcls - INFO - Epoch(val) [69][9]	accuracy_top-1: 74.2647, accuracy_top-5: 95.5882
+2024-04-13 21:52:19,196 - mmcls - INFO - Epoch(val) [70][9]	accuracy_top-1: 71.3235, accuracy_top-5: 96.3235
+2024-04-13 21:52:44,761 - mmcls - INFO - Epoch(val) [71][9]	accuracy_top-1: 73.5294, accuracy_top-5: 94.8529
+2024-04-13 21:53:10,026 - mmcls - INFO - Epoch(val) [72][9]	accuracy_top-1: 71.3235, accuracy_top-5: 96.3235
+2024-04-13 21:53:35,658 - mmcls - INFO - Epoch(val) [73][9]	accuracy_top-1: 73.5294, accuracy_top-5: 97.7941
+2024-04-13 21:54:01,219 - mmcls - INFO - Epoch(val) [74][9]	accuracy_top-1: 76.4706, accuracy_top-5: 97.0588
+2024-04-13 21:54:26,962 - mmcls - INFO - Epoch(val) [75][9]	accuracy_top-1: 74.2647, accuracy_top-5: 96.3235
+2024-04-13 21:54:52,868 - mmcls - INFO - Epoch(val) [76][9]	accuracy_top-1: 75.0000, accuracy_top-5: 97.0588
+2024-04-13 21:55:16,924 - mmcls - INFO - Epoch(val) [77][9]	accuracy_top-1: 75.0000, accuracy_top-5: 95.5882
+2024-04-13 21:55:40,782 - mmcls - INFO - Epoch(val) [78][9]	accuracy_top-1: 72.0588, accuracy_top-5: 97.0588
+2024-04-13 21:56:06,080 - mmcls - INFO - Epoch(val) [79][9]	accuracy_top-1: 74.2647, accuracy_top-5: 96.3235
+2024-04-13 21:56:31,475 - mmcls - INFO - Epoch(val) [80][9]	accuracy_top-1: 75.7353, accuracy_top-5: 97.0588
+2024-04-13 21:56:57,163 - mmcls - INFO - Epoch(val) [81][9]	accuracy_top-1: 72.0588, accuracy_top-5: 97.0588
+2024-04-13 21:57:22,461 - mmcls - INFO - Epoch(val) [82][9]	accuracy_top-1: 76.4706, accuracy_top-5: 96.3235
+2024-04-13 21:57:47,983 - mmcls - INFO - Epoch(val) [83][9]	accuracy_top-1: 76.4706, accuracy_top-5: 97.0588
+2024-04-13 21:58:13,569 - mmcls - INFO - Epoch(val) [84][9]	accuracy_top-1: 73.5294, accuracy_top-5: 95.5882
+2024-04-13 21:58:38,706 - mmcls - INFO - Epoch(val) [85][9]	accuracy_top-1: 75.0000, accuracy_top-5: 95.5882
+2024-04-13 21:59:04,098 - mmcls - INFO - Epoch(val) [86][9]	accuracy_top-1: 74.2647, accuracy_top-5: 97.7941
+2024-04-13 21:59:29,764 - mmcls - INFO - Epoch(val) [87][9]	accuracy_top-1: 75.7353, accuracy_top-5: 98.5294
+2024-04-13 21:59:55,313 - mmcls - INFO - Epoch(val) [88][9]	accuracy_top-1: 75.7353, accuracy_top-5: 97.0588
+2024-04-13 22:00:20,477 - mmcls - INFO - Epoch(val) [89][9]	accuracy_top-1: 77.2059, accuracy_top-5: 98.5294
+2024-04-13 22:00:46,146 - mmcls - INFO - Epoch(val) [90][9]	accuracy_top-1: 75.7353, accuracy_top-5: 97.7941
+2024-04-13 22:01:11,917 - mmcls - INFO - Epoch(val) [91][9]	accuracy_top-1: 76.4706, accuracy_top-5: 97.7941
+2024-04-13 22:01:37,529 - mmcls - INFO - Epoch(val) [92][9]	accuracy_top-1: 77.9412, accuracy_top-5: 97.0588
+2024-04-13 22:02:02,504 - mmcls - INFO - Epoch(val) [93][9]	accuracy_top-1: 77.9412, accuracy_top-5: 96.3235
+2024-04-13 22:02:27,034 - mmcls - INFO - Epoch(val) [94][9]	accuracy_top-1: 75.7353, accuracy_top-5: 97.0588
+2024-04-13 22:02:51,955 - mmcls - INFO - Epoch(val) [95][9]	accuracy_top-1: 79.4118, accuracy_top-5: 97.0588
+2024-04-13 22:03:16,309 - mmcls - INFO - Epoch(val) [96][9]	accuracy_top-1: 74.2647, accuracy_top-5: 99.2647
+2024-04-13 22:03:41,189 - mmcls - INFO - Epoch(val) [97][9]	accuracy_top-1: 73.5294, accuracy_top-5: 97.7941
+2024-04-13 22:04:07,220 - mmcls - INFO - Epoch(val) [98][9]	accuracy_top-1: 73.5294, accuracy_top-5: 97.7941
+2024-04-13 22:04:32,830 - mmcls - INFO - Epoch(val) [99][9]	accuracy_top-1: 76.4706, accuracy_top-5: 97.0588
+2024-04-13 22:04:55,959 - mmcls - INFO - Saving checkpoint at 100 epochs
+2024-04-13 22:05:00,554 - mmcls - INFO - Epoch(val) [100][9]	accuracy_top-1: 77.9412, accuracy_top-5: 97.7941
+2024-04-13 22:05:26,041 - mmcls - INFO - Epoch(val) [101][9]	accuracy_top-1: 77.9412, accuracy_top-5: 97.7941
+2024-04-13 22:05:51,782 - mmcls - INFO - Epoch(val) [102][9]	accuracy_top-1: 78.6765, accuracy_top-5: 97.7941
+2024-04-13 22:06:15,959 - mmcls - INFO - Epoch(val) [103][9]	accuracy_top-1: 77.2059, accuracy_top-5: 97.7941
+2024-04-13 22:06:40,101 - mmcls - INFO - Epoch(val) [104][9]	accuracy_top-1: 76.4706, accuracy_top-5: 97.7941
+2024-04-13 22:07:03,806 - mmcls - INFO - Epoch(val) [105][9]	accuracy_top-1: 77.9412, accuracy_top-5: 97.7941
+2024-04-13 22:07:27,686 - mmcls - INFO - Epoch(val) [106][9]	accuracy_top-1: 77.9412, accuracy_top-5: 97.7941
+2024-04-13 22:07:52,294 - mmcls - INFO - Epoch(val) [107][9]	accuracy_top-1: 77.2059, accuracy_top-5: 98.5294
+2024-04-13 22:08:18,110 - mmcls - INFO - Epoch(val) [108][9]	accuracy_top-1: 76.4706, accuracy_top-5: 99.2647
+2024-04-13 22:08:44,034 - mmcls - INFO - Epoch(val) [109][9]	accuracy_top-1: 77.2059, accuracy_top-5: 97.7941
+2024-04-13 22:09:08,881 - mmcls - INFO - Epoch(val) [110][9]	accuracy_top-1: 77.2059, accuracy_top-5: 99.2647
+2024-04-13 22:09:33,109 - mmcls - INFO - Epoch(val) [111][9]	accuracy_top-1: 78.6765, accuracy_top-5: 98.5294
+2024-04-13 22:09:57,270 - mmcls - INFO - Epoch(val) [112][9]	accuracy_top-1: 77.9412, accuracy_top-5: 97.7941
+2024-04-13 22:10:22,570 - mmcls - INFO - Epoch(val) [113][9]	accuracy_top-1: 77.2059, accuracy_top-5: 98.5294
+2024-04-13 22:10:46,752 - mmcls - INFO - Epoch(val) [114][9]	accuracy_top-1: 78.6765, accuracy_top-5: 97.7941
+2024-04-13 22:11:10,184 - mmcls - INFO - Epoch(val) [115][9]	accuracy_top-1: 77.9412, accuracy_top-5: 99.2647
+2024-04-13 22:11:35,313 - mmcls - INFO - Epoch(val) [116][9]	accuracy_top-1: 77.9412, accuracy_top-5: 97.0588
+2024-04-13 22:11:59,227 - mmcls - INFO - Epoch(val) [117][9]	accuracy_top-1: 77.9412, accuracy_top-5: 98.5294
+2024-04-13 22:12:23,606 - mmcls - INFO - Epoch(val) [118][9]	accuracy_top-1: 78.6765, accuracy_top-5: 99.2647
+2024-04-13 22:12:47,691 - mmcls - INFO - Epoch(val) [119][9]	accuracy_top-1: 79.4118, accuracy_top-5: 98.5294
+2024-04-13 22:13:11,263 - mmcls - INFO - Epoch(val) [120][9]	accuracy_top-1: 78.6765, accuracy_top-5: 99.2647
+2024-04-13 22:13:35,071 - mmcls - INFO - Epoch(val) [121][9]	accuracy_top-1: 78.6765, accuracy_top-5: 97.7941
+2024-04-13 22:13:58,642 - mmcls - INFO - Epoch(val) [122][9]	accuracy_top-1: 78.6765, accuracy_top-5: 97.7941
+2024-04-13 22:14:23,792 - mmcls - INFO - Epoch(val) [123][9]	accuracy_top-1: 78.6765, accuracy_top-5: 97.0588
+2024-04-13 22:14:47,130 - mmcls - INFO - Epoch(val) [124][9]	accuracy_top-1: 80.1471, accuracy_top-5: 97.7941
+2024-04-13 22:15:10,775 - mmcls - INFO - Epoch(val) [125][9]	accuracy_top-1: 78.6765, accuracy_top-5: 98.5294
+2024-04-13 22:15:34,362 - mmcls - INFO - Epoch(val) [126][9]	accuracy_top-1: 78.6765, accuracy_top-5: 98.5294
+2024-04-13 22:15:58,943 - mmcls - INFO - Epoch(val) [127][9]	accuracy_top-1: 79.4118, accuracy_top-5: 97.7941
+2024-04-13 22:16:24,468 - mmcls - INFO - Epoch(val) [128][9]	accuracy_top-1: 78.6765, accuracy_top-5: 97.7941
+2024-04-13 22:16:50,193 - mmcls - INFO - Epoch(val) [129][9]	accuracy_top-1: 78.6765, accuracy_top-5: 99.2647
+2024-04-13 22:17:16,282 - mmcls - INFO - Epoch(val) [130][9]	accuracy_top-1: 77.9412, accuracy_top-5: 97.7941
+2024-04-13 22:17:42,085 - mmcls - INFO - Epoch(val) [131][9]	accuracy_top-1: 78.6765, accuracy_top-5: 97.7941
+2024-04-13 22:18:07,917 - mmcls - INFO - Epoch(val) [132][9]	accuracy_top-1: 77.2059, accuracy_top-5: 98.5294
+2024-04-13 22:18:32,218 - mmcls - INFO - Epoch(val) [133][9]	accuracy_top-1: 77.9412, accuracy_top-5: 99.2647
+2024-04-13 22:18:57,423 - mmcls - INFO - Epoch(val) [134][9]	accuracy_top-1: 76.4706, accuracy_top-5: 98.5294
+2024-04-13 22:19:23,393 - mmcls - INFO - Epoch(val) [135][9]	accuracy_top-1: 77.2059, accuracy_top-5: 99.2647
+2024-04-13 22:19:48,575 - mmcls - INFO - Epoch(val) [136][9]	accuracy_top-1: 75.0000, accuracy_top-5: 99.2647
+2024-04-13 22:20:12,121 - mmcls - INFO - Epoch(val) [137][9]	accuracy_top-1: 78.6765, accuracy_top-5: 98.5294
+2024-04-13 22:20:36,537 - mmcls - INFO - Epoch(val) [138][9]	accuracy_top-1: 77.2059, accuracy_top-5: 97.7941
+2024-04-13 22:21:00,473 - mmcls - INFO - Epoch(val) [139][9]	accuracy_top-1: 79.4118, accuracy_top-5: 99.2647
+2024-04-13 22:21:24,330 - mmcls - INFO - Epoch(val) [140][9]	accuracy_top-1: 78.6765, accuracy_top-5: 98.5294
+2024-04-13 22:21:49,171 - mmcls - INFO - Epoch(val) [141][9]	accuracy_top-1: 77.9412, accuracy_top-5: 98.5294
+2024-04-13 22:22:13,175 - mmcls - INFO - Epoch(val) [142][9]	accuracy_top-1: 77.9412, accuracy_top-5: 98.5294
+2024-04-13 22:22:38,962 - mmcls - INFO - Epoch(val) [143][9]	accuracy_top-1: 78.6765, accuracy_top-5: 97.7941
+2024-04-13 22:23:04,469 - mmcls - INFO - Epoch(val) [144][9]	accuracy_top-1: 80.8824, accuracy_top-5: 100.0000
+2024-04-13 22:23:29,992 - mmcls - INFO - Epoch(val) [145][9]	accuracy_top-1: 80.1471, accuracy_top-5: 99.2647
+2024-04-13 22:23:56,126 - mmcls - INFO - Epoch(val) [146][9]	accuracy_top-1: 79.4118, accuracy_top-5: 99.2647
+2024-04-13 22:24:21,870 - mmcls - INFO - Epoch(val) [147][9]	accuracy_top-1: 80.1471, accuracy_top-5: 98.5294
+2024-04-13 22:24:47,343 - mmcls - INFO - Epoch(val) [148][9]	accuracy_top-1: 77.9412, accuracy_top-5: 99.2647
+2024-04-13 22:25:11,212 - mmcls - INFO - Epoch(val) [149][9]	accuracy_top-1: 78.6765, accuracy_top-5: 98.5294
+2024-04-13 22:25:36,209 - mmcls - INFO - Epoch(val) [150][9]	accuracy_top-1: 79.4118, accuracy_top-5: 98.5294
+2024-04-13 22:26:01,652 - mmcls - INFO - Epoch(val) [151][9]	accuracy_top-1: 80.1471, accuracy_top-5: 98.5294
+2024-04-13 22:26:25,756 - mmcls - INFO - Epoch(val) [152][9]	accuracy_top-1: 79.4118, accuracy_top-5: 99.2647
+2024-04-13 22:26:50,207 - mmcls - INFO - Epoch(val) [153][9]	accuracy_top-1: 78.6765, accuracy_top-5: 99.2647
+2024-04-13 22:27:14,635 - mmcls - INFO - Epoch(val) [154][9]	accuracy_top-1: 78.6765, accuracy_top-5: 99.2647
+2024-04-13 22:27:40,327 - mmcls - INFO - Epoch(val) [155][9]	accuracy_top-1: 78.6765, accuracy_top-5: 99.2647
+2024-04-13 22:28:06,100 - mmcls - INFO - Epoch(val) [156][9]	accuracy_top-1: 79.4118, accuracy_top-5: 99.2647
+2024-04-13 22:28:32,136 - mmcls - INFO - Epoch(val) [157][9]	accuracy_top-1: 77.9412, accuracy_top-5: 99.2647
+2024-04-13 22:28:58,184 - mmcls - INFO - Epoch(val) [158][9]	accuracy_top-1: 78.6765, accuracy_top-5: 99.2647
+2024-04-13 22:29:23,954 - mmcls - INFO - Epoch(val) [159][9]	accuracy_top-1: 77.9412, accuracy_top-5: 99.2647
+2024-04-13 22:29:48,610 - mmcls - INFO - Epoch(val) [160][9]	accuracy_top-1: 77.9412, accuracy_top-5: 99.2647
+2024-04-13 22:30:13,107 - mmcls - INFO - Epoch(val) [161][9]	accuracy_top-1: 77.9412, accuracy_top-5: 99.2647
+2024-04-13 22:30:37,816 - mmcls - INFO - Epoch(val) [162][9]	accuracy_top-1: 77.9412, accuracy_top-5: 99.2647
+2024-04-13 22:31:02,415 - mmcls - INFO - Epoch(val) [163][9]	accuracy_top-1: 77.9412, accuracy_top-5: 99.2647
+2024-04-13 22:31:28,072 - mmcls - INFO - Epoch(val) [164][9]	accuracy_top-1: 77.9412, accuracy_top-5: 99.2647
+2024-04-13 22:31:52,707 - mmcls - INFO - Epoch(val) [165][9]	accuracy_top-1: 77.9412, accuracy_top-5: 99.2647
+2024-04-13 22:32:17,913 - mmcls - INFO - Epoch(val) [166][9]	accuracy_top-1: 77.9412, accuracy_top-5: 99.2647
+2024-04-13 22:32:43,861 - mmcls - INFO - Epoch(val) [167][9]	accuracy_top-1: 77.9412, accuracy_top-5: 99.2647
+2024-04-13 22:33:07,902 - mmcls - INFO - Epoch(val) [168][9]	accuracy_top-1: 77.9412, accuracy_top-5: 99.2647
+2024-04-13 22:33:31,865 - mmcls - INFO - Epoch(val) [169][9]	accuracy_top-1: 77.9412, accuracy_top-5: 99.2647
+2024-04-13 22:33:55,937 - mmcls - INFO - Epoch(val) [170][9]	accuracy_top-1: 78.6765, accuracy_top-5: 99.2647
+2024-04-13 22:34:21,351 - mmcls - INFO - Epoch(val) [171][9]	accuracy_top-1: 78.6765, accuracy_top-5: 99.2647
+2024-04-13 22:34:45,167 - mmcls - INFO - Epoch(val) [172][9]	accuracy_top-1: 78.6765, accuracy_top-5: 99.2647
+2024-04-13 22:35:08,554 - mmcls - INFO - Epoch(val) [173][9]	accuracy_top-1: 78.6765, accuracy_top-5: 99.2647
+2024-04-13 22:35:32,391 - mmcls - INFO - Epoch(val) [174][9]	accuracy_top-1: 78.6765, accuracy_top-5: 99.2647
+2024-04-13 22:35:57,712 - mmcls - INFO - Epoch(val) [175][9]	accuracy_top-1: 78.6765, accuracy_top-5: 99.2647
+2024-04-13 22:36:23,246 - mmcls - INFO - Epoch(val) [176][9]	accuracy_top-1: 78.6765, accuracy_top-5: 99.2647
+2024-04-13 22:36:48,777 - mmcls - INFO - Epoch(val) [177][9]	accuracy_top-1: 78.6765, accuracy_top-5: 99.2647
+2024-04-13 22:37:14,377 - mmcls - INFO - Epoch(val) [178][9]	accuracy_top-1: 78.6765, accuracy_top-5: 99.2647
+2024-04-13 22:37:40,125 - mmcls - INFO - Epoch(val) [179][9]	accuracy_top-1: 78.6765, accuracy_top-5: 99.2647
+2024-04-13 22:38:04,764 - mmcls - INFO - Epoch(val) [180][9]	accuracy_top-1: 78.6765, accuracy_top-5: 99.2647
+2024-04-13 22:38:29,174 - mmcls - INFO - Epoch(val) [181][9]	accuracy_top-1: 78.6765, accuracy_top-5: 99.2647
+2024-04-13 22:38:53,594 - mmcls - INFO - Epoch(val) [182][9]	accuracy_top-1: 78.6765, accuracy_top-5: 99.2647
+2024-04-13 22:39:17,941 - mmcls - INFO - Epoch(val) [183][9]	accuracy_top-1: 78.6765, accuracy_top-5: 99.2647
+2024-04-13 22:39:43,324 - mmcls - INFO - Epoch(val) [184][9]	accuracy_top-1: 78.6765, accuracy_top-5: 99.2647
+2024-04-13 22:40:08,509 - mmcls - INFO - Epoch(val) [185][9]	accuracy_top-1: 78.6765, accuracy_top-5: 99.2647
+2024-04-13 22:40:32,459 - mmcls - INFO - Epoch(val) [186][9]	accuracy_top-1: 78.6765, accuracy_top-5: 99.2647
+2024-04-13 22:40:56,886 - mmcls - INFO - Epoch(val) [187][9]	accuracy_top-1: 78.6765, accuracy_top-5: 99.2647
+2024-04-13 22:41:22,219 - mmcls - INFO - Epoch(val) [188][9]	accuracy_top-1: 78.6765, accuracy_top-5: 99.2647
+2024-04-13 22:41:47,840 - mmcls - INFO - Epoch(val) [189][9]	accuracy_top-1: 78.6765, accuracy_top-5: 99.2647
+2024-04-13 22:42:11,656 - mmcls - INFO - Epoch(val) [190][9]	accuracy_top-1: 78.6765, accuracy_top-5: 99.2647
+2024-04-13 22:42:36,161 - mmcls - INFO - Epoch(val) [191][9]	accuracy_top-1: 78.6765, accuracy_top-5: 99.2647
+2024-04-13 22:43:00,199 - mmcls - INFO - Epoch(val) [192][9]	accuracy_top-1: 78.6765, accuracy_top-5: 99.2647
+2024-04-13 22:43:24,303 - mmcls - INFO - Epoch(val) [193][9]	accuracy_top-1: 78.6765, accuracy_top-5: 99.2647
+2024-04-13 22:43:48,381 - mmcls - INFO - Epoch(val) [194][9]	accuracy_top-1: 78.6765, accuracy_top-5: 99.2647
+2024-04-13 22:44:13,657 - mmcls - INFO - Epoch(val) [195][9]	accuracy_top-1: 78.6765, accuracy_top-5: 99.2647
+2024-04-13 22:44:37,873 - mmcls - INFO - Epoch(val) [196][9]	accuracy_top-1: 78.6765, accuracy_top-5: 99.2647
+2024-04-13 22:45:03,564 - mmcls - INFO - Epoch(val) [197][9]	accuracy_top-1: 78.6765, accuracy_top-5: 99.2647
+2024-04-13 22:45:29,055 - mmcls - INFO - Epoch(val) [198][9]	accuracy_top-1: 78.6765, accuracy_top-5: 99.2647
+2024-04-13 22:45:54,126 - mmcls - INFO - Epoch(val) [199][9]	accuracy_top-1: 78.6765, accuracy_top-5: 99.2647
+2024-04-13 22:46:17,226 - mmcls - INFO - Saving checkpoint at 200 epochs
+2024-04-13 22:46:22,056 - mmcls - INFO - Epoch(val) [200][9]	accuracy_top-1: 78.6765, accuracy_top-5: 99.2647

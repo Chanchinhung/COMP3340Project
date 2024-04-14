@@ -1,0 +1,1790 @@
+2024-04-11 21:52:04,807 - mmcls - INFO - Environment info:
+------------------------------------------------------------
+sys.platform: linux
+Python: 3.7.16 (default, Jan 17 2023, 22:20:44) [GCC 11.2.0]
+CUDA available: True
+GPU 0: NVIDIA GeForce RTX 2080 Ti
+CUDA_HOME: /usr/local/cuda
+NVCC: Cuda compilation tools, release 11.8, V11.8.89
+GCC: gcc (Ubuntu 11.4.0-1ubuntu1~22.04) 11.4.0
+PyTorch: 1.7.1
+PyTorch compiling details: PyTorch built with:
+  - GCC 7.3
+  - C++ Version: 201402
+  - Intel(R) oneAPI Math Kernel Library Version 2021.4-Product Build 20210904 for Intel(R) 64 architecture applications
+  - Intel(R) MKL-DNN v1.6.0 (Git Hash 5ef631a030a6f73131c77892041042805a06064f)
+  - OpenMP 201511 (a.k.a. OpenMP 4.5)
+  - NNPACK is enabled
+  - CPU capability usage: AVX2
+  - CUDA Runtime 10.1
+  - NVCC architecture flags: -gencode;arch=compute_37,code=sm_37;-gencode;arch=compute_50,code=sm_50;-gencode;arch=compute_60,code=sm_60;-gencode;arch=compute_61,code=sm_61;-gencode;arch=compute_70,code=sm_70;-gencode;arch=compute_75,code=sm_75;-gencode;arch=compute_37,code=compute_37
+  - CuDNN 7.6.3
+  - Magma 2.5.2
+  - Build settings: BLAS=MKL, BUILD_TYPE=Release, CXX_FLAGS= -Wno-deprecated -fvisibility-inlines-hidden -DUSE_PTHREADPOOL -fopenmp -DNDEBUG -DUSE_FBGEMM -DUSE_QNNPACK -DUSE_PYTORCH_QNNPACK -DUSE_XNNPACK -DUSE_VULKAN_WRAPPER -O2 -fPIC -Wno-narrowing -Wall -Wextra -Werror=return-type -Wno-missing-field-initializers -Wno-type-limits -Wno-array-bounds -Wno-unknown-pragmas -Wno-sign-compare -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function -Wno-unused-result -Wno-unused-local-typedefs -Wno-strict-overflow -Wno-strict-aliasing -Wno-error=deprecated-declarations -Wno-stringop-overflow -Wno-psabi -Wno-error=pedantic -Wno-error=redundant-decls -Wno-error=old-style-cast -fdiagnostics-color=always -faligned-new -Wno-unused-but-set-variable -Wno-maybe-uninitialized -fno-math-errno -fno-trapping-math -Werror=format -Wno-stringop-overflow, PERF_WITH_AVX=1, PERF_WITH_AVX2=1, PERF_WITH_AVX512=1, USE_CUDA=ON, USE_EXCEPTION_PTR=1, USE_GFLAGS=OFF, USE_GLOG=OFF, USE_MKL=ON, USE_MKLDNN=ON, USE_MPI=OFF, USE_NCCL=ON, USE_NNPACK=ON, USE_OPENMP=ON, 
+
+TorchVision: 0.8.2
+OpenCV: 4.9.0
+MMCV: 1.5.0
+MMCV Compiler: n/a
+MMCV CUDA Compiler: n/a
+MMClassification: 0.15.0+2b78fde
+------------------------------------------------------------
+
+2024-04-11 21:52:04,808 - mmcls - INFO - Distributed training: False
+2024-04-11 21:52:05,078 - mmcls - INFO - Config:
+model = dict(
+    type='ImageClassifier',
+    backbone=dict(
+        type='SwinTransformer', arch='base', img_size=224, drop_path_rate=0.5),
+    neck=dict(type='GlobalAveragePooling'),
+    head=dict(
+        type='LinearClsHead',
+        num_classes=17,
+        in_channels=1024,
+        init_cfg=None,
+        loss=dict(
+            type='LabelSmoothLoss', label_smooth_val=0.1, mode='original'),
+        cal_acc=False),
+    init_cfg=[
+        dict(type='TruncNormal', layer='Linear', std=0.02, bias=0.0),
+        dict(type='Constant', layer='LayerNorm', val=1.0, bias=0.0)
+    ],
+    train_cfg=dict(augments=[
+        dict(type='BatchMixup', alpha=0.8, num_classes=17, prob=0.5),
+        dict(type='BatchCutMix', alpha=1.0, num_classes=17, prob=0.5)
+    ]))
+dataset_type = 'Flowers'
+img_norm_cfg = dict(
+    mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
+train_pipeline = [
+    dict(type='LoadImageFromFile'),
+    dict(type='RandomResizedCrop', size=224),
+    dict(type='RandomFlip', flip_prob=0.5, direction='horizontal'),
+    dict(
+        type='Normalize',
+        mean=[123.675, 116.28, 103.53],
+        std=[58.395, 57.12, 57.375],
+        to_rgb=True),
+    dict(type='ImageToTensor', keys=['img']),
+    dict(type='ToTensor', keys=['gt_label']),
+    dict(type='Collect', keys=['img', 'gt_label'])
+]
+test_pipeline = [
+    dict(type='LoadImageFromFile'),
+    dict(type='Resize', size=(256, -1)),
+    dict(type='CenterCrop', crop_size=224),
+    dict(
+        type='Normalize',
+        mean=[123.675, 116.28, 103.53],
+        std=[58.395, 57.12, 57.375],
+        to_rgb=True),
+    dict(type='ImageToTensor', keys=['img']),
+    dict(type='Collect', keys=['img'])
+]
+data = dict(
+    samples_per_gpu=4,
+    workers_per_gpu=1,
+    train=dict(
+        type='Flowers',
+        data_prefix='data/flowers/train',
+        ann_file='data/flowers/meta/train.txt',
+        pipeline=[
+            dict(type='LoadImageFromFile'),
+            dict(type='RandomResizedCrop', size=224),
+            dict(type='RandomFlip', flip_prob=0.5, direction='horizontal'),
+            dict(
+                type='Normalize',
+                mean=[123.675, 116.28, 103.53],
+                std=[58.395, 57.12, 57.375],
+                to_rgb=True),
+            dict(type='ImageToTensor', keys=['img']),
+            dict(type='ToTensor', keys=['gt_label']),
+            dict(type='Collect', keys=['img', 'gt_label'])
+        ]),
+    val=dict(
+        type='Flowers',
+        data_prefix='data/flowers/val',
+        ann_file='data/flowers/meta/val.txt',
+        pipeline=[
+            dict(type='LoadImageFromFile'),
+            dict(type='Resize', size=(256, -1)),
+            dict(type='CenterCrop', crop_size=224),
+            dict(
+                type='Normalize',
+                mean=[123.675, 116.28, 103.53],
+                std=[58.395, 57.12, 57.375],
+                to_rgb=True),
+            dict(type='ImageToTensor', keys=['img']),
+            dict(type='Collect', keys=['img'])
+        ]),
+    test=dict(
+        type='Flowers',
+        data_prefix='data/flowers/test',
+        ann_file='data/flowers/meta/test.txt',
+        pipeline=[
+            dict(type='LoadImageFromFile'),
+            dict(type='Resize', size=(256, -1)),
+            dict(type='CenterCrop', crop_size=224),
+            dict(
+                type='Normalize',
+                mean=[123.675, 116.28, 103.53],
+                std=[58.395, 57.12, 57.375],
+                to_rgb=True),
+            dict(type='ImageToTensor', keys=['img']),
+            dict(type='Collect', keys=['img'])
+        ]))
+evaluation = dict(interval=1, metric='accuracy')
+optimizer = dict(type='SGD', lr=0.0001, momentum=0.9, weight_decay=0.0001)
+optimizer_config = dict(grad_clip=None)
+lr_config = dict(policy='step', step=[100, 150])
+runner = dict(type='EpochBasedRunner', max_epochs=200)
+checkpoint_config = dict(interval=100)
+log_config = dict(interval=100, hooks=[dict(type='TextLoggerHook')])
+dist_params = dict(backend='nccl')
+log_level = 'INFO'
+load_from = None
+resume_from = None
+workflow = [('train', 1)]
+work_dir = 'output/swin_transformer/bs4/lr0.0001'
+gpu_ids = range(0, 1)
+
+2024-04-11 21:52:06,063 - mmcls - INFO - initialize ImageClassifier with init_cfg [{'type': 'TruncNormal', 'layer': 'Linear', 'std': 0.02, 'bias': 0.0}, {'type': 'Constant', 'layer': 'LayerNorm', 'val': 1.0, 'bias': 0.0}]
+Name of parameter - Initialization information
+
+backbone.patch_embed.projection.weight - torch.Size([128, 3, 4, 4]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.patch_embed.projection.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.patch_embed.norm.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.patch_embed.norm.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.0.blocks.0.norm1.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.0.blocks.0.norm1.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.0.blocks.0.attn.w_msa.relative_position_bias_table - torch.Size([169, 4]): 
+Initialized by user-defined `init_weights` in WindowMSA  
+
+backbone.stages.0.blocks.0.attn.w_msa.qkv.weight - torch.Size([384, 128]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.0.blocks.0.attn.w_msa.qkv.bias - torch.Size([384]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.0.blocks.0.attn.w_msa.proj.weight - torch.Size([128, 128]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.0.blocks.0.attn.w_msa.proj.bias - torch.Size([128]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.0.blocks.0.norm2.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.0.blocks.0.norm2.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.0.blocks.0.ffn.layers.0.0.weight - torch.Size([512, 128]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.0.blocks.0.ffn.layers.0.0.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.0.blocks.0.ffn.layers.1.weight - torch.Size([128, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.0.blocks.0.ffn.layers.1.bias - torch.Size([128]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.0.blocks.1.norm1.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.0.blocks.1.norm1.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.0.blocks.1.attn.w_msa.relative_position_bias_table - torch.Size([169, 4]): 
+Initialized by user-defined `init_weights` in WindowMSA  
+
+backbone.stages.0.blocks.1.attn.w_msa.qkv.weight - torch.Size([384, 128]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.0.blocks.1.attn.w_msa.qkv.bias - torch.Size([384]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.0.blocks.1.attn.w_msa.proj.weight - torch.Size([128, 128]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.0.blocks.1.attn.w_msa.proj.bias - torch.Size([128]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.0.blocks.1.norm2.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.0.blocks.1.norm2.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.0.blocks.1.ffn.layers.0.0.weight - torch.Size([512, 128]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.0.blocks.1.ffn.layers.0.0.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.0.blocks.1.ffn.layers.1.weight - torch.Size([128, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.0.blocks.1.ffn.layers.1.bias - torch.Size([128]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.0.downsample.norm.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.0.downsample.norm.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.0.downsample.reduction.weight - torch.Size([256, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.1.blocks.0.norm1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.1.blocks.0.norm1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.1.blocks.0.attn.w_msa.relative_position_bias_table - torch.Size([169, 8]): 
+Initialized by user-defined `init_weights` in WindowMSA  
+
+backbone.stages.1.blocks.0.attn.w_msa.qkv.weight - torch.Size([768, 256]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.1.blocks.0.attn.w_msa.qkv.bias - torch.Size([768]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.1.blocks.0.attn.w_msa.proj.weight - torch.Size([256, 256]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.1.blocks.0.attn.w_msa.proj.bias - torch.Size([256]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.1.blocks.0.norm2.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.1.blocks.0.norm2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.1.blocks.0.ffn.layers.0.0.weight - torch.Size([1024, 256]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.1.blocks.0.ffn.layers.0.0.bias - torch.Size([1024]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.1.blocks.0.ffn.layers.1.weight - torch.Size([256, 1024]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.1.blocks.0.ffn.layers.1.bias - torch.Size([256]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.1.blocks.1.norm1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.1.blocks.1.norm1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.1.blocks.1.attn.w_msa.relative_position_bias_table - torch.Size([169, 8]): 
+Initialized by user-defined `init_weights` in WindowMSA  
+
+backbone.stages.1.blocks.1.attn.w_msa.qkv.weight - torch.Size([768, 256]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.1.blocks.1.attn.w_msa.qkv.bias - torch.Size([768]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.1.blocks.1.attn.w_msa.proj.weight - torch.Size([256, 256]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.1.blocks.1.attn.w_msa.proj.bias - torch.Size([256]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.1.blocks.1.norm2.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.1.blocks.1.norm2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.1.blocks.1.ffn.layers.0.0.weight - torch.Size([1024, 256]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.1.blocks.1.ffn.layers.0.0.bias - torch.Size([1024]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.1.blocks.1.ffn.layers.1.weight - torch.Size([256, 1024]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.1.blocks.1.ffn.layers.1.bias - torch.Size([256]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.1.downsample.norm.weight - torch.Size([1024]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.1.downsample.norm.bias - torch.Size([1024]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.1.downsample.reduction.weight - torch.Size([512, 1024]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.0.norm1.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.0.norm1.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.0.attn.w_msa.relative_position_bias_table - torch.Size([169, 16]): 
+Initialized by user-defined `init_weights` in WindowMSA  
+
+backbone.stages.2.blocks.0.attn.w_msa.qkv.weight - torch.Size([1536, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.0.attn.w_msa.qkv.bias - torch.Size([1536]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.0.attn.w_msa.proj.weight - torch.Size([512, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.0.attn.w_msa.proj.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.0.norm2.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.0.norm2.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.0.ffn.layers.0.0.weight - torch.Size([2048, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.0.ffn.layers.0.0.bias - torch.Size([2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.0.ffn.layers.1.weight - torch.Size([512, 2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.0.ffn.layers.1.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.1.norm1.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.1.norm1.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.1.attn.w_msa.relative_position_bias_table - torch.Size([169, 16]): 
+Initialized by user-defined `init_weights` in WindowMSA  
+
+backbone.stages.2.blocks.1.attn.w_msa.qkv.weight - torch.Size([1536, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.1.attn.w_msa.qkv.bias - torch.Size([1536]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.1.attn.w_msa.proj.weight - torch.Size([512, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.1.attn.w_msa.proj.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.1.norm2.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.1.norm2.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.1.ffn.layers.0.0.weight - torch.Size([2048, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.1.ffn.layers.0.0.bias - torch.Size([2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.1.ffn.layers.1.weight - torch.Size([512, 2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.1.ffn.layers.1.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.2.norm1.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.2.norm1.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.2.attn.w_msa.relative_position_bias_table - torch.Size([169, 16]): 
+Initialized by user-defined `init_weights` in WindowMSA  
+
+backbone.stages.2.blocks.2.attn.w_msa.qkv.weight - torch.Size([1536, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.2.attn.w_msa.qkv.bias - torch.Size([1536]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.2.attn.w_msa.proj.weight - torch.Size([512, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.2.attn.w_msa.proj.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.2.norm2.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.2.norm2.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.2.ffn.layers.0.0.weight - torch.Size([2048, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.2.ffn.layers.0.0.bias - torch.Size([2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.2.ffn.layers.1.weight - torch.Size([512, 2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.2.ffn.layers.1.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.3.norm1.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.3.norm1.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.3.attn.w_msa.relative_position_bias_table - torch.Size([169, 16]): 
+Initialized by user-defined `init_weights` in WindowMSA  
+
+backbone.stages.2.blocks.3.attn.w_msa.qkv.weight - torch.Size([1536, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.3.attn.w_msa.qkv.bias - torch.Size([1536]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.3.attn.w_msa.proj.weight - torch.Size([512, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.3.attn.w_msa.proj.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.3.norm2.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.3.norm2.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.3.ffn.layers.0.0.weight - torch.Size([2048, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.3.ffn.layers.0.0.bias - torch.Size([2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.3.ffn.layers.1.weight - torch.Size([512, 2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.3.ffn.layers.1.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.4.norm1.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.4.norm1.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.4.attn.w_msa.relative_position_bias_table - torch.Size([169, 16]): 
+Initialized by user-defined `init_weights` in WindowMSA  
+
+backbone.stages.2.blocks.4.attn.w_msa.qkv.weight - torch.Size([1536, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.4.attn.w_msa.qkv.bias - torch.Size([1536]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.4.attn.w_msa.proj.weight - torch.Size([512, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.4.attn.w_msa.proj.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.4.norm2.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.4.norm2.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.4.ffn.layers.0.0.weight - torch.Size([2048, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.4.ffn.layers.0.0.bias - torch.Size([2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.4.ffn.layers.1.weight - torch.Size([512, 2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.4.ffn.layers.1.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.5.norm1.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.5.norm1.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.5.attn.w_msa.relative_position_bias_table - torch.Size([169, 16]): 
+Initialized by user-defined `init_weights` in WindowMSA  
+
+backbone.stages.2.blocks.5.attn.w_msa.qkv.weight - torch.Size([1536, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.5.attn.w_msa.qkv.bias - torch.Size([1536]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.5.attn.w_msa.proj.weight - torch.Size([512, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.5.attn.w_msa.proj.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.5.norm2.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.5.norm2.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.5.ffn.layers.0.0.weight - torch.Size([2048, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.5.ffn.layers.0.0.bias - torch.Size([2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.5.ffn.layers.1.weight - torch.Size([512, 2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.5.ffn.layers.1.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.6.norm1.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.6.norm1.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.6.attn.w_msa.relative_position_bias_table - torch.Size([169, 16]): 
+Initialized by user-defined `init_weights` in WindowMSA  
+
+backbone.stages.2.blocks.6.attn.w_msa.qkv.weight - torch.Size([1536, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.6.attn.w_msa.qkv.bias - torch.Size([1536]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.6.attn.w_msa.proj.weight - torch.Size([512, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.6.attn.w_msa.proj.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.6.norm2.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.6.norm2.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.6.ffn.layers.0.0.weight - torch.Size([2048, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.6.ffn.layers.0.0.bias - torch.Size([2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.6.ffn.layers.1.weight - torch.Size([512, 2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.6.ffn.layers.1.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.7.norm1.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.7.norm1.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.7.attn.w_msa.relative_position_bias_table - torch.Size([169, 16]): 
+Initialized by user-defined `init_weights` in WindowMSA  
+
+backbone.stages.2.blocks.7.attn.w_msa.qkv.weight - torch.Size([1536, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.7.attn.w_msa.qkv.bias - torch.Size([1536]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.7.attn.w_msa.proj.weight - torch.Size([512, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.7.attn.w_msa.proj.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.7.norm2.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.7.norm2.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.7.ffn.layers.0.0.weight - torch.Size([2048, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.7.ffn.layers.0.0.bias - torch.Size([2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.7.ffn.layers.1.weight - torch.Size([512, 2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.7.ffn.layers.1.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.8.norm1.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.8.norm1.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.8.attn.w_msa.relative_position_bias_table - torch.Size([169, 16]): 
+Initialized by user-defined `init_weights` in WindowMSA  
+
+backbone.stages.2.blocks.8.attn.w_msa.qkv.weight - torch.Size([1536, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.8.attn.w_msa.qkv.bias - torch.Size([1536]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.8.attn.w_msa.proj.weight - torch.Size([512, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.8.attn.w_msa.proj.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.8.norm2.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.8.norm2.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.8.ffn.layers.0.0.weight - torch.Size([2048, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.8.ffn.layers.0.0.bias - torch.Size([2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.8.ffn.layers.1.weight - torch.Size([512, 2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.8.ffn.layers.1.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.9.norm1.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.9.norm1.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.9.attn.w_msa.relative_position_bias_table - torch.Size([169, 16]): 
+Initialized by user-defined `init_weights` in WindowMSA  
+
+backbone.stages.2.blocks.9.attn.w_msa.qkv.weight - torch.Size([1536, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.9.attn.w_msa.qkv.bias - torch.Size([1536]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.9.attn.w_msa.proj.weight - torch.Size([512, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.9.attn.w_msa.proj.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.9.norm2.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.9.norm2.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.9.ffn.layers.0.0.weight - torch.Size([2048, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.9.ffn.layers.0.0.bias - torch.Size([2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.9.ffn.layers.1.weight - torch.Size([512, 2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.9.ffn.layers.1.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.10.norm1.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.10.norm1.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.10.attn.w_msa.relative_position_bias_table - torch.Size([169, 16]): 
+Initialized by user-defined `init_weights` in WindowMSA  
+
+backbone.stages.2.blocks.10.attn.w_msa.qkv.weight - torch.Size([1536, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.10.attn.w_msa.qkv.bias - torch.Size([1536]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.10.attn.w_msa.proj.weight - torch.Size([512, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.10.attn.w_msa.proj.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.10.norm2.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.10.norm2.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.10.ffn.layers.0.0.weight - torch.Size([2048, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.10.ffn.layers.0.0.bias - torch.Size([2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.10.ffn.layers.1.weight - torch.Size([512, 2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.10.ffn.layers.1.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.11.norm1.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.11.norm1.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.11.attn.w_msa.relative_position_bias_table - torch.Size([169, 16]): 
+Initialized by user-defined `init_weights` in WindowMSA  
+
+backbone.stages.2.blocks.11.attn.w_msa.qkv.weight - torch.Size([1536, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.11.attn.w_msa.qkv.bias - torch.Size([1536]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.11.attn.w_msa.proj.weight - torch.Size([512, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.11.attn.w_msa.proj.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.11.norm2.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.11.norm2.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.11.ffn.layers.0.0.weight - torch.Size([2048, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.11.ffn.layers.0.0.bias - torch.Size([2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.11.ffn.layers.1.weight - torch.Size([512, 2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.11.ffn.layers.1.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.12.norm1.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.12.norm1.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.12.attn.w_msa.relative_position_bias_table - torch.Size([169, 16]): 
+Initialized by user-defined `init_weights` in WindowMSA  
+
+backbone.stages.2.blocks.12.attn.w_msa.qkv.weight - torch.Size([1536, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.12.attn.w_msa.qkv.bias - torch.Size([1536]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.12.attn.w_msa.proj.weight - torch.Size([512, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.12.attn.w_msa.proj.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.12.norm2.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.12.norm2.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.12.ffn.layers.0.0.weight - torch.Size([2048, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.12.ffn.layers.0.0.bias - torch.Size([2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.12.ffn.layers.1.weight - torch.Size([512, 2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.12.ffn.layers.1.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.13.norm1.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.13.norm1.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.13.attn.w_msa.relative_position_bias_table - torch.Size([169, 16]): 
+Initialized by user-defined `init_weights` in WindowMSA  
+
+backbone.stages.2.blocks.13.attn.w_msa.qkv.weight - torch.Size([1536, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.13.attn.w_msa.qkv.bias - torch.Size([1536]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.13.attn.w_msa.proj.weight - torch.Size([512, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.13.attn.w_msa.proj.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.13.norm2.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.13.norm2.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.13.ffn.layers.0.0.weight - torch.Size([2048, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.13.ffn.layers.0.0.bias - torch.Size([2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.13.ffn.layers.1.weight - torch.Size([512, 2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.13.ffn.layers.1.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.14.norm1.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.14.norm1.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.14.attn.w_msa.relative_position_bias_table - torch.Size([169, 16]): 
+Initialized by user-defined `init_weights` in WindowMSA  
+
+backbone.stages.2.blocks.14.attn.w_msa.qkv.weight - torch.Size([1536, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.14.attn.w_msa.qkv.bias - torch.Size([1536]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.14.attn.w_msa.proj.weight - torch.Size([512, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.14.attn.w_msa.proj.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.14.norm2.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.14.norm2.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.14.ffn.layers.0.0.weight - torch.Size([2048, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.14.ffn.layers.0.0.bias - torch.Size([2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.14.ffn.layers.1.weight - torch.Size([512, 2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.14.ffn.layers.1.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.15.norm1.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.15.norm1.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.15.attn.w_msa.relative_position_bias_table - torch.Size([169, 16]): 
+Initialized by user-defined `init_weights` in WindowMSA  
+
+backbone.stages.2.blocks.15.attn.w_msa.qkv.weight - torch.Size([1536, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.15.attn.w_msa.qkv.bias - torch.Size([1536]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.15.attn.w_msa.proj.weight - torch.Size([512, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.15.attn.w_msa.proj.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.15.norm2.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.15.norm2.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.15.ffn.layers.0.0.weight - torch.Size([2048, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.15.ffn.layers.0.0.bias - torch.Size([2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.15.ffn.layers.1.weight - torch.Size([512, 2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.15.ffn.layers.1.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.16.norm1.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.16.norm1.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.16.attn.w_msa.relative_position_bias_table - torch.Size([169, 16]): 
+Initialized by user-defined `init_weights` in WindowMSA  
+
+backbone.stages.2.blocks.16.attn.w_msa.qkv.weight - torch.Size([1536, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.16.attn.w_msa.qkv.bias - torch.Size([1536]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.16.attn.w_msa.proj.weight - torch.Size([512, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.16.attn.w_msa.proj.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.16.norm2.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.16.norm2.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.16.ffn.layers.0.0.weight - torch.Size([2048, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.16.ffn.layers.0.0.bias - torch.Size([2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.16.ffn.layers.1.weight - torch.Size([512, 2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.16.ffn.layers.1.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.17.norm1.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.17.norm1.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.17.attn.w_msa.relative_position_bias_table - torch.Size([169, 16]): 
+Initialized by user-defined `init_weights` in WindowMSA  
+
+backbone.stages.2.blocks.17.attn.w_msa.qkv.weight - torch.Size([1536, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.17.attn.w_msa.qkv.bias - torch.Size([1536]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.17.attn.w_msa.proj.weight - torch.Size([512, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.17.attn.w_msa.proj.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.17.norm2.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.17.norm2.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.blocks.17.ffn.layers.0.0.weight - torch.Size([2048, 512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.17.ffn.layers.0.0.bias - torch.Size([2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.17.ffn.layers.1.weight - torch.Size([512, 2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.blocks.17.ffn.layers.1.bias - torch.Size([512]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.2.downsample.norm.weight - torch.Size([2048]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.downsample.norm.bias - torch.Size([2048]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.2.downsample.reduction.weight - torch.Size([1024, 2048]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.3.blocks.0.norm1.weight - torch.Size([1024]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.3.blocks.0.norm1.bias - torch.Size([1024]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.3.blocks.0.attn.w_msa.relative_position_bias_table - torch.Size([169, 32]): 
+Initialized by user-defined `init_weights` in WindowMSA  
+
+backbone.stages.3.blocks.0.attn.w_msa.qkv.weight - torch.Size([3072, 1024]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.3.blocks.0.attn.w_msa.qkv.bias - torch.Size([3072]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.3.blocks.0.attn.w_msa.proj.weight - torch.Size([1024, 1024]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.3.blocks.0.attn.w_msa.proj.bias - torch.Size([1024]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.3.blocks.0.norm2.weight - torch.Size([1024]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.3.blocks.0.norm2.bias - torch.Size([1024]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.3.blocks.0.ffn.layers.0.0.weight - torch.Size([4096, 1024]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.3.blocks.0.ffn.layers.0.0.bias - torch.Size([4096]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.3.blocks.0.ffn.layers.1.weight - torch.Size([1024, 4096]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.3.blocks.0.ffn.layers.1.bias - torch.Size([1024]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.3.blocks.1.norm1.weight - torch.Size([1024]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.3.blocks.1.norm1.bias - torch.Size([1024]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.3.blocks.1.attn.w_msa.relative_position_bias_table - torch.Size([169, 32]): 
+Initialized by user-defined `init_weights` in WindowMSA  
+
+backbone.stages.3.blocks.1.attn.w_msa.qkv.weight - torch.Size([3072, 1024]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.3.blocks.1.attn.w_msa.qkv.bias - torch.Size([3072]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.3.blocks.1.attn.w_msa.proj.weight - torch.Size([1024, 1024]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.3.blocks.1.attn.w_msa.proj.bias - torch.Size([1024]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.3.blocks.1.norm2.weight - torch.Size([1024]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.3.blocks.1.norm2.bias - torch.Size([1024]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.stages.3.blocks.1.ffn.layers.0.0.weight - torch.Size([4096, 1024]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.3.blocks.1.ffn.layers.0.0.bias - torch.Size([4096]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.3.blocks.1.ffn.layers.1.weight - torch.Size([1024, 4096]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.stages.3.blocks.1.ffn.layers.1.bias - torch.Size([1024]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+backbone.norm3.weight - torch.Size([1024]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+backbone.norm3.bias - torch.Size([1024]): 
+The value is the same before and after calling `init_weights` of ImageClassifier  
+
+head.fc.weight - torch.Size([17, 1024]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+
+head.fc.bias - torch.Size([17]): 
+TruncNormalInit: a=-2, b=2, mean=0, std=0.02, bias=0.0 
+2024-04-11 21:52:10,705 - mmcls - INFO - Start running, host: cshtimmy@gpu2-comp-108, work_dir: /userhome/cs2/cshtimmy/COMP3340Project/CNN_Image_Classification_Code/output/swin_transformer/bs4/lr0.0001
+2024-04-11 21:52:10,705 - mmcls - INFO - Hooks will be executed in the following order:
+before_run:
+(VERY_HIGH   ) StepLrUpdaterHook                  
+(NORMAL      ) CheckpointHook                     
+(NORMAL      ) EvalHook                           
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+before_train_epoch:
+(VERY_HIGH   ) StepLrUpdaterHook                  
+(NORMAL      ) EvalHook                           
+(LOW         ) IterTimerHook                      
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+before_train_iter:
+(VERY_HIGH   ) StepLrUpdaterHook                  
+(NORMAL      ) EvalHook                           
+(LOW         ) IterTimerHook                      
+ -------------------- 
+after_train_iter:
+(ABOVE_NORMAL) OptimizerHook                      
+(NORMAL      ) CheckpointHook                     
+(NORMAL      ) EvalHook                           
+(LOW         ) IterTimerHook                      
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+after_train_epoch:
+(NORMAL      ) CheckpointHook                     
+(NORMAL      ) EvalHook                           
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+before_val_epoch:
+(LOW         ) IterTimerHook                      
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+before_val_iter:
+(LOW         ) IterTimerHook                      
+ -------------------- 
+after_val_iter:
+(LOW         ) IterTimerHook                      
+ -------------------- 
+after_val_epoch:
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+after_run:
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+2024-04-11 21:52:10,705 - mmcls - INFO - workflow: [('train', 1)], max: 200 epochs
+2024-04-11 21:52:10,706 - mmcls - INFO - Checkpoints will be saved to /userhome/cs2/cshtimmy/COMP3340Project/CNN_Image_Classification_Code/output/swin_transformer/bs4/lr0.0001 by HardDiskBackend.
+2024-04-11 21:52:32,488 - mmcls - INFO - Epoch [1][100/272]	lr: 1.000e-04, eta: 3:17:02, time: 0.218, data_time: 0.026, memory: 2002, loss: 2.8630
+2024-04-11 21:52:49,845 - mmcls - INFO - Epoch [1][200/272]	lr: 1.000e-04, eta: 2:56:43, time: 0.174, data_time: 0.003, memory: 2002, loss: 2.7313
+2024-04-11 21:53:03,668 - mmcls - INFO - Epoch(val) [1][34]	accuracy_top-1: 25.0000, accuracy_top-5: 76.4706
+2024-04-11 21:53:25,834 - mmcls - INFO - Epoch [2][100/272]	lr: 1.000e-04, eta: 2:28:20, time: 0.222, data_time: 0.025, memory: 2002, loss: 2.6141
+2024-04-11 21:53:45,211 - mmcls - INFO - Epoch [2][200/272]	lr: 1.000e-04, eta: 2:33:35, time: 0.194, data_time: 0.004, memory: 2002, loss: 2.6138
+2024-04-11 21:53:59,625 - mmcls - INFO - Epoch(val) [2][34]	accuracy_top-1: 27.9412, accuracy_top-5: 82.3529
+2024-04-11 21:54:18,036 - mmcls - INFO - Epoch [3][100/272]	lr: 1.000e-04, eta: 2:17:48, time: 0.184, data_time: 0.026, memory: 2002, loss: 2.5507
+2024-04-11 21:54:33,141 - mmcls - INFO - Epoch [3][200/272]	lr: 1.000e-04, eta: 2:17:13, time: 0.151, data_time: 0.003, memory: 2002, loss: 2.5114
+2024-04-11 21:54:45,637 - mmcls - INFO - Epoch(val) [3][34]	accuracy_top-1: 36.0294, accuracy_top-5: 85.2941
+2024-04-11 21:55:05,039 - mmcls - INFO - Epoch [4][100/272]	lr: 1.000e-04, eta: 2:09:57, time: 0.194, data_time: 0.026, memory: 2002, loss: 2.5320
+2024-04-11 21:55:21,466 - mmcls - INFO - Epoch [4][200/272]	lr: 1.000e-04, eta: 2:11:20, time: 0.164, data_time: 0.003, memory: 2002, loss: 2.5001
+2024-04-11 21:55:33,966 - mmcls - INFO - Epoch(val) [4][34]	accuracy_top-1: 30.1471, accuracy_top-5: 88.9706
+2024-04-11 21:55:49,102 - mmcls - INFO - Epoch [5][100/272]	lr: 1.000e-04, eta: 2:03:15, time: 0.151, data_time: 0.025, memory: 2002, loss: 2.4591
+2024-04-11 21:56:01,626 - mmcls - INFO - Epoch [5][200/272]	lr: 1.000e-04, eta: 2:02:04, time: 0.125, data_time: 0.002, memory: 2002, loss: 2.5390
+2024-04-11 21:56:12,219 - mmcls - INFO - Epoch(val) [5][34]	accuracy_top-1: 40.4412, accuracy_top-5: 88.2353
+2024-04-11 21:56:32,973 - mmcls - INFO - Epoch [6][100/272]	lr: 1.000e-04, eta: 1:59:52, time: 0.207, data_time: 0.025, memory: 2002, loss: 2.4377
+2024-04-11 21:56:48,192 - mmcls - INFO - Epoch [6][200/272]	lr: 1.000e-04, eta: 2:00:34, time: 0.152, data_time: 0.003, memory: 2002, loss: 2.3852
+2024-04-11 21:57:02,035 - mmcls - INFO - Epoch(val) [6][34]	accuracy_top-1: 36.0294, accuracy_top-5: 89.7059
+2024-04-11 21:57:23,002 - mmcls - INFO - Epoch [7][100/272]	lr: 1.000e-04, eta: 1:58:51, time: 0.210, data_time: 0.025, memory: 2002, loss: 2.3748
+2024-04-11 21:57:38,876 - mmcls - INFO - Epoch [7][200/272]	lr: 1.000e-04, eta: 1:59:45, time: 0.159, data_time: 0.003, memory: 2002, loss: 2.3642
+2024-04-11 21:57:52,584 - mmcls - INFO - Epoch(val) [7][34]	accuracy_top-1: 40.4412, accuracy_top-5: 90.4412
+2024-04-11 21:58:12,654 - mmcls - INFO - Epoch [8][100/272]	lr: 1.000e-04, eta: 1:57:51, time: 0.201, data_time: 0.026, memory: 2002, loss: 2.4053
+2024-04-11 21:58:26,608 - mmcls - INFO - Epoch [8][200/272]	lr: 1.000e-04, eta: 1:57:49, time: 0.140, data_time: 0.003, memory: 2002, loss: 2.3611
+2024-04-11 21:58:39,288 - mmcls - INFO - Epoch(val) [8][34]	accuracy_top-1: 36.0294, accuracy_top-5: 91.1765
+2024-04-11 21:58:58,049 - mmcls - INFO - Epoch [9][100/272]	lr: 1.000e-04, eta: 1:55:42, time: 0.187, data_time: 0.026, memory: 2002, loss: 2.4062
+2024-04-11 21:59:12,748 - mmcls - INFO - Epoch [9][200/272]	lr: 1.000e-04, eta: 1:55:59, time: 0.147, data_time: 0.003, memory: 2002, loss: 2.3728
+2024-04-11 21:59:27,311 - mmcls - INFO - Epoch(val) [9][34]	accuracy_top-1: 39.7059, accuracy_top-5: 92.6471
+2024-04-11 21:59:44,986 - mmcls - INFO - Epoch [10][100/272]	lr: 1.000e-04, eta: 1:53:47, time: 0.177, data_time: 0.026, memory: 2002, loss: 2.3861
+2024-04-11 22:00:01,649 - mmcls - INFO - Epoch [10][200/272]	lr: 1.000e-04, eta: 1:54:42, time: 0.167, data_time: 0.004, memory: 2002, loss: 2.3462
+2024-04-11 22:00:18,433 - mmcls - INFO - Epoch(val) [10][34]	accuracy_top-1: 44.1176, accuracy_top-5: 87.5000
+2024-04-11 22:00:37,288 - mmcls - INFO - Epoch [11][100/272]	lr: 1.000e-04, eta: 1:53:06, time: 0.188, data_time: 0.026, memory: 2002, loss: 2.3149
+2024-04-11 22:00:50,424 - mmcls - INFO - Epoch [11][200/272]	lr: 1.000e-04, eta: 1:52:52, time: 0.131, data_time: 0.003, memory: 2002, loss: 2.3539
+2024-04-11 22:01:01,772 - mmcls - INFO - Epoch(val) [11][34]	accuracy_top-1: 44.8529, accuracy_top-5: 89.7059
+2024-04-11 22:01:18,441 - mmcls - INFO - Epoch [12][100/272]	lr: 1.000e-04, eta: 1:50:50, time: 0.166, data_time: 0.025, memory: 2002, loss: 2.3554
+2024-04-11 22:01:33,142 - mmcls - INFO - Epoch [12][200/272]	lr: 1.000e-04, eta: 1:51:05, time: 0.147, data_time: 0.003, memory: 2002, loss: 2.3317
+2024-04-11 22:01:45,397 - mmcls - INFO - Epoch(val) [12][34]	accuracy_top-1: 46.3235, accuracy_top-5: 93.3824
+2024-04-11 22:02:01,555 - mmcls - INFO - Epoch [13][100/272]	lr: 1.000e-04, eta: 1:49:08, time: 0.161, data_time: 0.025, memory: 2002, loss: 2.3313
+2024-04-11 22:02:16,201 - mmcls - INFO - Epoch [13][200/272]	lr: 1.000e-04, eta: 1:49:22, time: 0.146, data_time: 0.003, memory: 2002, loss: 2.3554
+2024-04-11 22:02:28,350 - mmcls - INFO - Epoch(val) [13][34]	accuracy_top-1: 43.3824, accuracy_top-5: 91.9118
+2024-04-11 22:02:48,317 - mmcls - INFO - Epoch [14][100/272]	lr: 1.000e-04, eta: 1:48:29, time: 0.200, data_time: 0.025, memory: 2002, loss: 2.2822
+2024-04-11 22:03:04,837 - mmcls - INFO - Epoch [14][200/272]	lr: 1.000e-04, eta: 1:49:06, time: 0.165, data_time: 0.003, memory: 2002, loss: 2.3925
+2024-04-11 22:03:18,585 - mmcls - INFO - Epoch(val) [14][34]	accuracy_top-1: 44.8529, accuracy_top-5: 90.4412
+2024-04-11 22:03:37,040 - mmcls - INFO - Epoch [15][100/272]	lr: 1.000e-04, eta: 1:47:55, time: 0.184, data_time: 0.025, memory: 2002, loss: 2.3178
+2024-04-11 22:03:52,556 - mmcls - INFO - Epoch [15][200/272]	lr: 1.000e-04, eta: 1:48:16, time: 0.155, data_time: 0.002, memory: 2002, loss: 2.2264
+2024-04-11 22:04:06,408 - mmcls - INFO - Epoch(val) [15][34]	accuracy_top-1: 46.3235, accuracy_top-5: 91.1765
+2024-04-11 22:04:26,053 - mmcls - INFO - Epoch [16][100/272]	lr: 1.000e-04, eta: 1:47:23, time: 0.196, data_time: 0.025, memory: 2002, loss: 2.2698
+2024-04-11 22:04:43,520 - mmcls - INFO - Epoch [16][200/272]	lr: 1.000e-04, eta: 1:48:05, time: 0.175, data_time: 0.003, memory: 2002, loss: 2.3034
+2024-04-11 22:04:57,777 - mmcls - INFO - Epoch(val) [16][34]	accuracy_top-1: 45.5882, accuracy_top-5: 90.4412
+2024-04-11 22:05:19,686 - mmcls - INFO - Epoch [17][100/272]	lr: 1.000e-04, eta: 1:47:38, time: 0.219, data_time: 0.026, memory: 2002, loss: 2.2801
+2024-04-11 22:05:36,967 - mmcls - INFO - Epoch [17][200/272]	lr: 1.000e-04, eta: 1:48:13, time: 0.173, data_time: 0.004, memory: 2002, loss: 2.2296
+2024-04-11 22:05:50,786 - mmcls - INFO - Epoch(val) [17][34]	accuracy_top-1: 47.0588, accuracy_top-5: 91.9118
+2024-04-11 22:06:12,680 - mmcls - INFO - Epoch [18][100/272]	lr: 1.000e-04, eta: 1:47:45, time: 0.219, data_time: 0.026, memory: 2002, loss: 2.2331
+2024-04-11 22:06:32,355 - mmcls - INFO - Epoch [18][200/272]	lr: 1.000e-04, eta: 1:48:40, time: 0.197, data_time: 0.004, memory: 2002, loss: 2.3262
+2024-04-11 22:06:47,725 - mmcls - INFO - Epoch(val) [18][34]	accuracy_top-1: 52.9412, accuracy_top-5: 91.9118
+2024-04-11 22:07:07,111 - mmcls - INFO - Epoch [19][100/272]	lr: 1.000e-04, eta: 1:47:45, time: 0.194, data_time: 0.025, memory: 2002, loss: 2.2588
+2024-04-11 22:07:20,149 - mmcls - INFO - Epoch [19][200/272]	lr: 1.000e-04, eta: 1:47:32, time: 0.130, data_time: 0.003, memory: 2002, loss: 2.2658
+2024-04-11 22:07:32,087 - mmcls - INFO - Epoch(val) [19][34]	accuracy_top-1: 53.6765, accuracy_top-5: 91.1765
+2024-04-11 22:07:51,096 - mmcls - INFO - Epoch [20][100/272]	lr: 1.000e-04, eta: 1:46:37, time: 0.190, data_time: 0.025, memory: 2002, loss: 2.2561
+2024-04-11 22:08:05,753 - mmcls - INFO - Epoch [20][200/272]	lr: 1.000e-04, eta: 1:46:39, time: 0.147, data_time: 0.003, memory: 2002, loss: 2.1986
+2024-04-11 22:08:17,851 - mmcls - INFO - Epoch(val) [20][34]	accuracy_top-1: 47.0588, accuracy_top-5: 91.9118
+2024-04-11 22:08:36,400 - mmcls - INFO - Epoch [21][100/272]	lr: 1.000e-04, eta: 1:45:42, time: 0.185, data_time: 0.025, memory: 2002, loss: 2.3013
+2024-04-11 22:08:54,123 - mmcls - INFO - Epoch [21][200/272]	lr: 1.000e-04, eta: 1:46:10, time: 0.177, data_time: 0.004, memory: 2002, loss: 2.2251
+2024-04-11 22:09:06,654 - mmcls - INFO - Epoch(val) [21][34]	accuracy_top-1: 45.5882, accuracy_top-5: 91.1765
+2024-04-11 22:09:26,382 - mmcls - INFO - Epoch [22][100/272]	lr: 1.000e-04, eta: 1:45:24, time: 0.197, data_time: 0.026, memory: 2002, loss: 2.2208
+2024-04-11 22:09:42,514 - mmcls - INFO - Epoch [22][200/272]	lr: 1.000e-04, eta: 1:45:37, time: 0.161, data_time: 0.003, memory: 2002, loss: 2.2479
+2024-04-11 22:09:54,878 - mmcls - INFO - Epoch(val) [22][34]	accuracy_top-1: 48.5294, accuracy_top-5: 91.9118
+2024-04-11 22:10:14,210 - mmcls - INFO - Epoch [23][100/272]	lr: 1.000e-04, eta: 1:44:49, time: 0.193, data_time: 0.025, memory: 2002, loss: 2.2189
+2024-04-11 22:10:27,334 - mmcls - INFO - Epoch [23][200/272]	lr: 1.000e-04, eta: 1:44:37, time: 0.131, data_time: 0.003, memory: 2002, loss: 2.2549
+2024-04-11 22:10:40,049 - mmcls - INFO - Epoch(val) [23][34]	accuracy_top-1: 49.2647, accuracy_top-5: 91.1765
+2024-04-11 22:10:55,602 - mmcls - INFO - Epoch [24][100/272]	lr: 1.000e-04, eta: 1:43:23, time: 0.155, data_time: 0.024, memory: 2002, loss: 2.2997
+2024-04-11 22:11:07,608 - mmcls - INFO - Epoch [24][200/272]	lr: 1.000e-04, eta: 1:43:03, time: 0.120, data_time: 0.002, memory: 2002, loss: 2.2138
+2024-04-11 22:11:18,139 - mmcls - INFO - Epoch(val) [24][34]	accuracy_top-1: 52.9412, accuracy_top-5: 93.3824
+2024-04-11 22:11:37,642 - mmcls - INFO - Epoch [25][100/272]	lr: 1.000e-04, eta: 1:42:21, time: 0.195, data_time: 0.025, memory: 2002, loss: 2.1693
+2024-04-11 22:11:55,514 - mmcls - INFO - Epoch [25][200/272]	lr: 1.000e-04, eta: 1:42:44, time: 0.179, data_time: 0.003, memory: 2002, loss: 2.2026
+2024-04-11 22:12:11,239 - mmcls - INFO - Epoch(val) [25][34]	accuracy_top-1: 55.1471, accuracy_top-5: 94.1176
+2024-04-11 22:12:28,622 - mmcls - INFO - Epoch [26][100/272]	lr: 1.000e-04, eta: 1:41:48, time: 0.174, data_time: 0.026, memory: 2002, loss: 2.2262
+2024-04-11 22:12:42,973 - mmcls - INFO - Epoch [26][200/272]	lr: 1.000e-04, eta: 1:41:46, time: 0.144, data_time: 0.003, memory: 2002, loss: 2.2099
+2024-04-11 22:12:54,926 - mmcls - INFO - Epoch(val) [26][34]	accuracy_top-1: 55.1471, accuracy_top-5: 93.3824
+2024-04-11 22:13:11,802 - mmcls - INFO - Epoch [27][100/272]	lr: 1.000e-04, eta: 1:40:49, time: 0.169, data_time: 0.026, memory: 2002, loss: 2.1404
+2024-04-11 22:13:27,568 - mmcls - INFO - Epoch [27][200/272]	lr: 1.000e-04, eta: 1:40:55, time: 0.158, data_time: 0.004, memory: 2002, loss: 2.2528
+2024-04-11 22:13:40,843 - mmcls - INFO - Epoch(val) [27][34]	accuracy_top-1: 51.4706, accuracy_top-5: 94.1176
+2024-04-11 22:13:57,893 - mmcls - INFO - Epoch [28][100/272]	lr: 1.000e-04, eta: 1:40:00, time: 0.170, data_time: 0.025, memory: 2002, loss: 2.1504
+2024-04-11 22:14:10,395 - mmcls - INFO - Epoch [28][200/272]	lr: 1.000e-04, eta: 1:39:46, time: 0.125, data_time: 0.002, memory: 2002, loss: 2.1939
+2024-04-11 22:14:23,605 - mmcls - INFO - Epoch(val) [28][34]	accuracy_top-1: 52.2059, accuracy_top-5: 91.1765
+2024-04-11 22:14:43,394 - mmcls - INFO - Epoch [29][100/272]	lr: 1.000e-04, eta: 1:39:11, time: 0.198, data_time: 0.025, memory: 2002, loss: 2.2095
+2024-04-11 22:14:56,904 - mmcls - INFO - Epoch [29][200/272]	lr: 1.000e-04, eta: 1:39:02, time: 0.135, data_time: 0.002, memory: 2002, loss: 2.2646
+2024-04-11 22:15:10,300 - mmcls - INFO - Epoch(val) [29][34]	accuracy_top-1: 54.4118, accuracy_top-5: 94.1176
+2024-04-11 22:15:30,042 - mmcls - INFO - Epoch [30][100/272]	lr: 1.000e-04, eta: 1:38:28, time: 0.197, data_time: 0.025, memory: 2002, loss: 2.1877
+2024-04-11 22:15:47,749 - mmcls - INFO - Epoch [30][200/272]	lr: 1.000e-04, eta: 1:38:43, time: 0.177, data_time: 0.003, memory: 2002, loss: 2.2010
+2024-04-11 22:16:01,435 - mmcls - INFO - Epoch(val) [30][34]	accuracy_top-1: 53.6765, accuracy_top-5: 94.8529
+2024-04-11 22:16:21,300 - mmcls - INFO - Epoch [31][100/272]	lr: 1.000e-04, eta: 1:38:09, time: 0.199, data_time: 0.025, memory: 2002, loss: 2.1653
+2024-04-11 22:16:41,076 - mmcls - INFO - Epoch [31][200/272]	lr: 1.000e-04, eta: 1:38:35, time: 0.198, data_time: 0.004, memory: 2002, loss: 2.1815
+2024-04-11 22:16:55,706 - mmcls - INFO - Epoch(val) [31][34]	accuracy_top-1: 52.2059, accuracy_top-5: 93.3824
+2024-04-11 22:17:15,823 - mmcls - INFO - Epoch [32][100/272]	lr: 1.000e-04, eta: 1:38:02, time: 0.201, data_time: 0.026, memory: 2002, loss: 2.1503
+2024-04-11 22:17:29,214 - mmcls - INFO - Epoch [32][200/272]	lr: 1.000e-04, eta: 1:37:53, time: 0.134, data_time: 0.003, memory: 2002, loss: 2.1807
+2024-04-11 22:17:40,972 - mmcls - INFO - Epoch(val) [32][34]	accuracy_top-1: 57.3529, accuracy_top-5: 94.8529
+2024-04-11 22:17:59,431 - mmcls - INFO - Epoch [33][100/272]	lr: 1.000e-04, eta: 1:37:12, time: 0.184, data_time: 0.025, memory: 2002, loss: 2.1705
+2024-04-11 22:18:16,600 - mmcls - INFO - Epoch [33][200/272]	lr: 1.000e-04, eta: 1:37:21, time: 0.172, data_time: 0.003, memory: 2002, loss: 2.2055
+2024-04-11 22:18:29,649 - mmcls - INFO - Epoch(val) [33][34]	accuracy_top-1: 58.0882, accuracy_top-5: 92.6471
+2024-04-11 22:18:48,321 - mmcls - INFO - Epoch [34][100/272]	lr: 1.000e-04, eta: 1:36:42, time: 0.187, data_time: 0.026, memory: 2002, loss: 2.1857
+2024-04-11 22:19:03,813 - mmcls - INFO - Epoch [34][200/272]	lr: 1.000e-04, eta: 1:36:43, time: 0.155, data_time: 0.003, memory: 2002, loss: 2.2077
+2024-04-11 22:19:16,295 - mmcls - INFO - Epoch(val) [34][34]	accuracy_top-1: 57.3529, accuracy_top-5: 93.3824
+2024-04-11 22:19:34,480 - mmcls - INFO - Epoch [35][100/272]	lr: 1.000e-04, eta: 1:36:02, time: 0.182, data_time: 0.025, memory: 2002, loss: 2.1574
+2024-04-11 22:19:51,777 - mmcls - INFO - Epoch [35][200/272]	lr: 1.000e-04, eta: 1:36:10, time: 0.173, data_time: 0.003, memory: 2002, loss: 2.1371
+2024-04-11 22:20:06,791 - mmcls - INFO - Epoch(val) [35][34]	accuracy_top-1: 58.0882, accuracy_top-5: 94.8529
+2024-04-11 22:20:27,333 - mmcls - INFO - Epoch [36][100/272]	lr: 1.000e-04, eta: 1:35:41, time: 0.205, data_time: 0.026, memory: 2002, loss: 2.0984
+2024-04-11 22:20:44,979 - mmcls - INFO - Epoch [36][200/272]	lr: 1.000e-04, eta: 1:35:50, time: 0.176, data_time: 0.003, memory: 2002, loss: 2.2292
+2024-04-11 22:20:59,812 - mmcls - INFO - Epoch(val) [36][34]	accuracy_top-1: 56.6176, accuracy_top-5: 93.3824
+2024-04-11 22:21:18,188 - mmcls - INFO - Epoch [37][100/272]	lr: 1.000e-04, eta: 1:35:11, time: 0.182, data_time: 0.025, memory: 2002, loss: 2.1178
+2024-04-11 22:21:32,233 - mmcls - INFO - Epoch [37][200/272]	lr: 1.000e-04, eta: 1:35:03, time: 0.140, data_time: 0.002, memory: 2002, loss: 2.1698
+2024-04-11 22:21:42,788 - mmcls - INFO - Epoch(val) [37][34]	accuracy_top-1: 53.6765, accuracy_top-5: 93.3824
+2024-04-11 22:22:01,263 - mmcls - INFO - Epoch [38][100/272]	lr: 1.000e-04, eta: 1:34:25, time: 0.185, data_time: 0.025, memory: 2002, loss: 2.1138
+2024-04-11 22:22:17,884 - mmcls - INFO - Epoch [38][200/272]	lr: 1.000e-04, eta: 1:34:29, time: 0.166, data_time: 0.003, memory: 2002, loss: 2.1464
+2024-04-11 22:22:31,516 - mmcls - INFO - Epoch(val) [38][34]	accuracy_top-1: 58.8235, accuracy_top-5: 95.5882
+2024-04-11 22:22:49,020 - mmcls - INFO - Epoch [39][100/272]	lr: 1.000e-04, eta: 1:33:47, time: 0.175, data_time: 0.025, memory: 2002, loss: 2.1677
+2024-04-11 22:23:01,436 - mmcls - INFO - Epoch [39][200/272]	lr: 1.000e-04, eta: 1:33:33, time: 0.124, data_time: 0.002, memory: 2002, loss: 2.1742
+2024-04-11 22:23:11,914 - mmcls - INFO - Epoch(val) [39][34]	accuracy_top-1: 59.5588, accuracy_top-5: 94.1176
+2024-04-11 22:23:31,940 - mmcls - INFO - Epoch [40][100/272]	lr: 1.000e-04, eta: 1:33:03, time: 0.200, data_time: 0.025, memory: 2002, loss: 2.1619
+2024-04-11 22:23:48,233 - mmcls - INFO - Epoch [40][200/272]	lr: 1.000e-04, eta: 1:33:04, time: 0.163, data_time: 0.003, memory: 2002, loss: 2.1573
+2024-04-11 22:23:59,843 - mmcls - INFO - Epoch(val) [40][34]	accuracy_top-1: 57.3529, accuracy_top-5: 94.1176
+2024-04-11 22:24:19,563 - mmcls - INFO - Epoch [41][100/272]	lr: 1.000e-04, eta: 1:32:33, time: 0.197, data_time: 0.025, memory: 2002, loss: 2.0974
+2024-04-11 22:24:35,728 - mmcls - INFO - Epoch [41][200/272]	lr: 1.000e-04, eta: 1:32:33, time: 0.162, data_time: 0.003, memory: 2002, loss: 2.1429
+2024-04-11 22:24:48,342 - mmcls - INFO - Epoch(val) [41][34]	accuracy_top-1: 53.6765, accuracy_top-5: 95.5882
+2024-04-11 22:25:06,784 - mmcls - INFO - Epoch [42][100/272]	lr: 1.000e-04, eta: 1:31:57, time: 0.184, data_time: 0.025, memory: 2002, loss: 2.1134
+2024-04-11 22:25:23,924 - mmcls - INFO - Epoch [42][200/272]	lr: 1.000e-04, eta: 1:32:01, time: 0.171, data_time: 0.003, memory: 2002, loss: 2.1043
+2024-04-11 22:25:39,818 - mmcls - INFO - Epoch(val) [42][34]	accuracy_top-1: 57.3529, accuracy_top-5: 93.3824
+2024-04-11 22:26:00,060 - mmcls - INFO - Epoch [43][100/272]	lr: 1.000e-04, eta: 1:31:32, time: 0.202, data_time: 0.025, memory: 2002, loss: 2.1938
+2024-04-11 22:26:19,015 - mmcls - INFO - Epoch [43][200/272]	lr: 1.000e-04, eta: 1:31:42, time: 0.190, data_time: 0.004, memory: 2002, loss: 2.0624
+2024-04-11 22:26:33,687 - mmcls - INFO - Epoch(val) [43][34]	accuracy_top-1: 62.5000, accuracy_top-5: 95.5882
+2024-04-11 22:26:56,132 - mmcls - INFO - Epoch [44][100/272]	lr: 1.000e-04, eta: 1:31:21, time: 0.224, data_time: 0.026, memory: 2002, loss: 2.0878
+2024-04-11 22:27:13,735 - mmcls - INFO - Epoch [44][200/272]	lr: 1.000e-04, eta: 1:31:25, time: 0.176, data_time: 0.003, memory: 2002, loss: 2.0447
+2024-04-11 22:27:27,517 - mmcls - INFO - Epoch(val) [44][34]	accuracy_top-1: 61.0294, accuracy_top-5: 93.3824
+2024-04-11 22:27:44,546 - mmcls - INFO - Epoch [45][100/272]	lr: 1.000e-04, eta: 1:30:45, time: 0.170, data_time: 0.025, memory: 2002, loss: 2.1658
+2024-04-11 22:28:00,011 - mmcls - INFO - Epoch [45][200/272]	lr: 1.000e-04, eta: 1:30:41, time: 0.155, data_time: 0.003, memory: 2002, loss: 2.0902
+2024-04-11 22:28:13,130 - mmcls - INFO - Epoch(val) [45][34]	accuracy_top-1: 59.5588, accuracy_top-5: 95.5882
+2024-04-11 22:28:29,538 - mmcls - INFO - Epoch [46][100/272]	lr: 1.000e-04, eta: 1:29:59, time: 0.164, data_time: 0.026, memory: 2002, loss: 2.1307
+2024-04-11 22:28:43,887 - mmcls - INFO - Epoch [46][200/272]	lr: 1.000e-04, eta: 1:29:51, time: 0.143, data_time: 0.003, memory: 2002, loss: 2.0997
+2024-04-11 22:28:56,154 - mmcls - INFO - Epoch(val) [46][34]	accuracy_top-1: 57.3529, accuracy_top-5: 93.3824
+2024-04-11 22:29:11,911 - mmcls - INFO - Epoch [47][100/272]	lr: 1.000e-04, eta: 1:29:08, time: 0.157, data_time: 0.025, memory: 2002, loss: 2.0793
+2024-04-11 22:29:24,345 - mmcls - INFO - Epoch [47][200/272]	lr: 1.000e-04, eta: 1:28:54, time: 0.124, data_time: 0.002, memory: 2002, loss: 2.1245
+2024-04-11 22:29:34,919 - mmcls - INFO - Epoch(val) [47][34]	accuracy_top-1: 61.7647, accuracy_top-5: 92.6471
+2024-04-11 22:29:54,224 - mmcls - INFO - Epoch [48][100/272]	lr: 1.000e-04, eta: 1:28:23, time: 0.193, data_time: 0.025, memory: 2002, loss: 2.0980
+2024-04-11 22:30:10,045 - mmcls - INFO - Epoch [48][200/272]	lr: 1.000e-04, eta: 1:28:20, time: 0.158, data_time: 0.003, memory: 2002, loss: 2.1110
+2024-04-11 22:30:22,427 - mmcls - INFO - Epoch(val) [48][34]	accuracy_top-1: 58.0882, accuracy_top-5: 94.8529
+2024-04-11 22:30:43,164 - mmcls - INFO - Epoch [49][100/272]	lr: 1.000e-04, eta: 1:27:54, time: 0.207, data_time: 0.025, memory: 2002, loss: 2.0745
+2024-04-11 22:30:59,858 - mmcls - INFO - Epoch [49][200/272]	lr: 1.000e-04, eta: 1:27:54, time: 0.167, data_time: 0.003, memory: 2002, loss: 2.1915
+2024-04-11 22:31:14,718 - mmcls - INFO - Epoch(val) [49][34]	accuracy_top-1: 57.3529, accuracy_top-5: 94.1176
+2024-04-11 22:31:32,406 - mmcls - INFO - Epoch [50][100/272]	lr: 1.000e-04, eta: 1:27:18, time: 0.177, data_time: 0.024, memory: 2002, loss: 2.1315
+2024-04-11 22:31:49,558 - mmcls - INFO - Epoch [50][200/272]	lr: 1.000e-04, eta: 1:27:19, time: 0.172, data_time: 0.003, memory: 2002, loss: 2.1351
+2024-04-11 22:32:03,040 - mmcls - INFO - Epoch(val) [50][34]	accuracy_top-1: 61.0294, accuracy_top-5: 93.3824
+2024-04-11 22:32:20,865 - mmcls - INFO - Epoch [51][100/272]	lr: 1.000e-04, eta: 1:26:44, time: 0.178, data_time: 0.025, memory: 2002, loss: 2.1085
+2024-04-11 22:32:34,940 - mmcls - INFO - Epoch [51][200/272]	lr: 1.000e-04, eta: 1:26:35, time: 0.141, data_time: 0.003, memory: 2002, loss: 2.0926
+2024-04-11 22:32:46,192 - mmcls - INFO - Epoch(val) [51][34]	accuracy_top-1: 58.0882, accuracy_top-5: 96.3235
+2024-04-11 22:33:03,491 - mmcls - INFO - Epoch [52][100/272]	lr: 1.000e-04, eta: 1:25:59, time: 0.173, data_time: 0.025, memory: 2002, loss: 2.0542
+2024-04-11 22:33:17,771 - mmcls - INFO - Epoch [52][200/272]	lr: 1.000e-04, eta: 1:25:51, time: 0.143, data_time: 0.003, memory: 2002, loss: 2.1501
+2024-04-11 22:33:29,003 - mmcls - INFO - Epoch(val) [52][34]	accuracy_top-1: 63.2353, accuracy_top-5: 94.1176
+2024-04-11 22:33:48,112 - mmcls - INFO - Epoch [53][100/272]	lr: 1.000e-04, eta: 1:25:21, time: 0.191, data_time: 0.025, memory: 2002, loss: 2.1124
+2024-04-11 22:34:02,749 - mmcls - INFO - Epoch [53][200/272]	lr: 1.000e-04, eta: 1:25:13, time: 0.146, data_time: 0.003, memory: 2002, loss: 2.0244
+2024-04-11 22:34:14,825 - mmcls - INFO - Epoch(val) [53][34]	accuracy_top-1: 61.0294, accuracy_top-5: 95.5882
+2024-04-11 22:34:32,917 - mmcls - INFO - Epoch [54][100/272]	lr: 1.000e-04, eta: 1:24:41, time: 0.181, data_time: 0.025, memory: 2002, loss: 2.0199
+2024-04-11 22:34:47,076 - mmcls - INFO - Epoch [54][200/272]	lr: 1.000e-04, eta: 1:24:32, time: 0.142, data_time: 0.003, memory: 2002, loss: 2.0601
+2024-04-11 22:34:59,216 - mmcls - INFO - Epoch(val) [54][34]	accuracy_top-1: 55.8824, accuracy_top-5: 94.8529
+2024-04-11 22:35:17,132 - mmcls - INFO - Epoch [55][100/272]	lr: 1.000e-04, eta: 1:23:59, time: 0.179, data_time: 0.025, memory: 2002, loss: 2.1157
+2024-04-11 22:35:30,022 - mmcls - INFO - Epoch [55][200/272]	lr: 1.000e-04, eta: 1:23:47, time: 0.129, data_time: 0.003, memory: 2002, loss: 2.1171
+2024-04-11 22:35:41,160 - mmcls - INFO - Epoch(val) [55][34]	accuracy_top-1: 62.5000, accuracy_top-5: 94.1176
+2024-04-11 22:35:58,925 - mmcls - INFO - Epoch [56][100/272]	lr: 1.000e-04, eta: 1:23:14, time: 0.178, data_time: 0.025, memory: 2002, loss: 2.0828
+2024-04-11 22:36:12,752 - mmcls - INFO - Epoch [56][200/272]	lr: 1.000e-04, eta: 1:23:04, time: 0.138, data_time: 0.003, memory: 2002, loss: 2.1090
+2024-04-11 22:36:25,144 - mmcls - INFO - Epoch(val) [56][34]	accuracy_top-1: 63.2353, accuracy_top-5: 94.8529
+2024-04-11 22:36:43,241 - mmcls - INFO - Epoch [57][100/272]	lr: 1.000e-04, eta: 1:22:33, time: 0.181, data_time: 0.026, memory: 2002, loss: 2.0675
+2024-04-11 22:37:01,303 - mmcls - INFO - Epoch [57][200/272]	lr: 1.000e-04, eta: 1:22:34, time: 0.181, data_time: 0.004, memory: 2002, loss: 2.0621
+2024-04-11 22:37:14,206 - mmcls - INFO - Epoch(val) [57][34]	accuracy_top-1: 59.5588, accuracy_top-5: 95.5882
+2024-04-11 22:37:31,594 - mmcls - INFO - Epoch [58][100/272]	lr: 1.000e-04, eta: 1:22:01, time: 0.174, data_time: 0.025, memory: 2002, loss: 2.0696
+2024-04-11 22:37:47,400 - mmcls - INFO - Epoch [58][200/272]	lr: 1.000e-04, eta: 1:21:56, time: 0.158, data_time: 0.003, memory: 2002, loss: 2.0830
+2024-04-11 22:38:00,544 - mmcls - INFO - Epoch(val) [58][34]	accuracy_top-1: 61.7647, accuracy_top-5: 94.8529
+2024-04-11 22:38:21,037 - mmcls - INFO - Epoch [59][100/272]	lr: 1.000e-04, eta: 1:21:31, time: 0.205, data_time: 0.025, memory: 2002, loss: 2.0509
+2024-04-11 22:38:38,226 - mmcls - INFO - Epoch [59][200/272]	lr: 1.000e-04, eta: 1:21:29, time: 0.172, data_time: 0.003, memory: 2002, loss: 2.0912
+2024-04-11 22:38:52,233 - mmcls - INFO - Epoch(val) [59][34]	accuracy_top-1: 65.4412, accuracy_top-5: 94.8529
+2024-04-11 22:39:13,097 - mmcls - INFO - Epoch [60][100/272]	lr: 1.000e-04, eta: 1:21:04, time: 0.209, data_time: 0.025, memory: 2002, loss: 2.0673
+2024-04-11 22:39:31,674 - mmcls - INFO - Epoch [60][200/272]	lr: 1.000e-04, eta: 1:21:05, time: 0.186, data_time: 0.004, memory: 2002, loss: 2.0320
+2024-04-11 22:39:46,093 - mmcls - INFO - Epoch(val) [60][34]	accuracy_top-1: 61.0294, accuracy_top-5: 93.3824
+2024-04-11 22:40:07,018 - mmcls - INFO - Epoch [61][100/272]	lr: 1.000e-04, eta: 1:20:41, time: 0.209, data_time: 0.025, memory: 2002, loss: 2.0065
+2024-04-11 22:40:26,666 - mmcls - INFO - Epoch [61][200/272]	lr: 1.000e-04, eta: 1:20:44, time: 0.196, data_time: 0.004, memory: 2002, loss: 2.1325
+2024-04-11 22:40:40,468 - mmcls - INFO - Epoch(val) [61][34]	accuracy_top-1: 56.6176, accuracy_top-5: 94.1176
+2024-04-11 22:41:05,808 - mmcls - INFO - Epoch [62][100/272]	lr: 1.000e-04, eta: 1:20:30, time: 0.253, data_time: 0.026, memory: 2002, loss: 2.1159
+2024-04-11 22:41:26,497 - mmcls - INFO - Epoch [62][200/272]	lr: 1.000e-04, eta: 1:20:35, time: 0.207, data_time: 0.004, memory: 2002, loss: 2.0898
+2024-04-11 22:41:44,411 - mmcls - INFO - Epoch(val) [62][34]	accuracy_top-1: 65.4412, accuracy_top-5: 95.5882
+2024-04-11 22:42:09,048 - mmcls - INFO - Epoch [63][100/272]	lr: 1.000e-04, eta: 1:20:18, time: 0.246, data_time: 0.026, memory: 2002, loss: 2.0187
+2024-04-11 22:42:28,559 - mmcls - INFO - Epoch [63][200/272]	lr: 1.000e-04, eta: 1:20:20, time: 0.195, data_time: 0.003, memory: 2002, loss: 2.0928
+2024-04-11 22:42:43,616 - mmcls - INFO - Epoch(val) [63][34]	accuracy_top-1: 61.0294, accuracy_top-5: 95.5882
+2024-04-11 22:43:05,319 - mmcls - INFO - Epoch [64][100/272]	lr: 1.000e-04, eta: 1:19:56, time: 0.217, data_time: 0.026, memory: 2002, loss: 2.0660
+2024-04-11 22:43:22,805 - mmcls - INFO - Epoch [64][200/272]	lr: 1.000e-04, eta: 1:19:53, time: 0.175, data_time: 0.003, memory: 2002, loss: 2.0680
+2024-04-11 22:43:34,865 - mmcls - INFO - Epoch(val) [64][34]	accuracy_top-1: 63.9706, accuracy_top-5: 93.3824
+2024-04-11 22:43:55,160 - mmcls - INFO - Epoch [65][100/272]	lr: 1.000e-04, eta: 1:19:27, time: 0.203, data_time: 0.026, memory: 2002, loss: 2.0495
+2024-04-11 22:44:14,589 - mmcls - INFO - Epoch [65][200/272]	lr: 1.000e-04, eta: 1:19:28, time: 0.194, data_time: 0.004, memory: 2002, loss: 2.0449
+2024-04-11 22:44:29,257 - mmcls - INFO - Epoch(val) [65][34]	accuracy_top-1: 61.0294, accuracy_top-5: 92.6471
+2024-04-11 22:44:47,293 - mmcls - INFO - Epoch [66][100/272]	lr: 1.000e-04, eta: 1:18:56, time: 0.180, data_time: 0.025, memory: 2002, loss: 2.0174
+2024-04-11 22:45:00,459 - mmcls - INFO - Epoch [66][200/272]	lr: 1.000e-04, eta: 1:18:44, time: 0.132, data_time: 0.003, memory: 2002, loss: 2.0504
+2024-04-11 22:45:11,494 - mmcls - INFO - Epoch(val) [66][34]	accuracy_top-1: 61.0294, accuracy_top-5: 94.1176
+2024-04-11 22:45:29,010 - mmcls - INFO - Epoch [67][100/272]	lr: 1.000e-04, eta: 1:18:12, time: 0.175, data_time: 0.025, memory: 2002, loss: 2.0564
+2024-04-11 22:45:42,201 - mmcls - INFO - Epoch [67][200/272]	lr: 1.000e-04, eta: 1:18:00, time: 0.132, data_time: 0.003, memory: 2002, loss: 2.0990
+2024-04-11 22:45:53,564 - mmcls - INFO - Epoch(val) [67][34]	accuracy_top-1: 61.7647, accuracy_top-5: 94.8529
+2024-04-11 22:46:12,745 - mmcls - INFO - Epoch [68][100/272]	lr: 1.000e-04, eta: 1:17:32, time: 0.192, data_time: 0.025, memory: 2002, loss: 2.0410
+2024-04-11 22:46:27,015 - mmcls - INFO - Epoch [68][200/272]	lr: 1.000e-04, eta: 1:17:21, time: 0.143, data_time: 0.003, memory: 2002, loss: 2.0992
+2024-04-11 22:46:40,544 - mmcls - INFO - Epoch(val) [68][34]	accuracy_top-1: 63.9706, accuracy_top-5: 94.8529
+2024-04-11 22:46:56,893 - mmcls - INFO - Epoch [69][100/272]	lr: 1.000e-04, eta: 1:16:48, time: 0.163, data_time: 0.025, memory: 2002, loss: 2.0399
+2024-04-11 22:47:13,235 - mmcls - INFO - Epoch [69][200/272]	lr: 1.000e-04, eta: 1:16:42, time: 0.163, data_time: 0.003, memory: 2002, loss: 2.0760
+2024-04-11 22:47:27,269 - mmcls - INFO - Epoch(val) [69][34]	accuracy_top-1: 59.5588, accuracy_top-5: 93.3824
+2024-04-11 22:47:45,625 - mmcls - INFO - Epoch [70][100/272]	lr: 1.000e-04, eta: 1:16:12, time: 0.183, data_time: 0.026, memory: 2002, loss: 2.0607
+2024-04-11 22:48:01,479 - mmcls - INFO - Epoch [70][200/272]	lr: 1.000e-04, eta: 1:16:05, time: 0.159, data_time: 0.004, memory: 2002, loss: 2.0509
+2024-04-11 22:48:14,652 - mmcls - INFO - Epoch(val) [70][34]	accuracy_top-1: 62.5000, accuracy_top-5: 94.1176
+2024-04-11 22:48:33,414 - mmcls - INFO - Epoch [71][100/272]	lr: 1.000e-04, eta: 1:15:37, time: 0.187, data_time: 0.026, memory: 2002, loss: 2.0668
+2024-04-11 22:48:47,920 - mmcls - INFO - Epoch [71][200/272]	lr: 1.000e-04, eta: 1:15:27, time: 0.145, data_time: 0.003, memory: 2002, loss: 2.0327
+2024-04-11 22:49:03,979 - mmcls - INFO - Epoch(val) [71][34]	accuracy_top-1: 63.2353, accuracy_top-5: 94.8529
+2024-04-11 22:49:25,601 - mmcls - INFO - Epoch [72][100/272]	lr: 1.000e-04, eta: 1:15:04, time: 0.216, data_time: 0.025, memory: 2002, loss: 2.0147
+2024-04-11 22:49:44,208 - mmcls - INFO - Epoch [72][200/272]	lr: 1.000e-04, eta: 1:15:01, time: 0.186, data_time: 0.003, memory: 2002, loss: 2.0799
+2024-04-11 22:49:58,454 - mmcls - INFO - Epoch(val) [72][34]	accuracy_top-1: 62.5000, accuracy_top-5: 94.8529
+2024-04-11 22:50:19,035 - mmcls - INFO - Epoch [73][100/272]	lr: 1.000e-04, eta: 1:14:36, time: 0.206, data_time: 0.026, memory: 2002, loss: 1.9950
+2024-04-11 22:50:35,490 - mmcls - INFO - Epoch [73][200/272]	lr: 1.000e-04, eta: 1:14:29, time: 0.165, data_time: 0.003, memory: 2002, loss: 2.0613
+2024-04-11 22:50:50,346 - mmcls - INFO - Epoch(val) [73][34]	accuracy_top-1: 66.9118, accuracy_top-5: 94.8529
+2024-04-11 22:51:13,050 - mmcls - INFO - Epoch [74][100/272]	lr: 1.000e-04, eta: 1:14:08, time: 0.227, data_time: 0.026, memory: 2002, loss: 2.0019
+2024-04-11 22:51:32,007 - mmcls - INFO - Epoch [74][200/272]	lr: 1.000e-04, eta: 1:14:05, time: 0.190, data_time: 0.004, memory: 2002, loss: 2.0527
+2024-04-11 22:51:48,432 - mmcls - INFO - Epoch(val) [74][34]	accuracy_top-1: 62.5000, accuracy_top-5: 95.5882
+2024-04-11 22:52:07,243 - mmcls - INFO - Epoch [75][100/272]	lr: 1.000e-04, eta: 1:13:37, time: 0.188, data_time: 0.025, memory: 2002, loss: 2.0449
+2024-04-11 22:52:25,786 - mmcls - INFO - Epoch [75][200/272]	lr: 1.000e-04, eta: 1:13:34, time: 0.185, data_time: 0.004, memory: 2002, loss: 2.0893
+2024-04-11 22:52:40,725 - mmcls - INFO - Epoch(val) [75][34]	accuracy_top-1: 61.7647, accuracy_top-5: 96.3235
+2024-04-11 22:53:01,867 - mmcls - INFO - Epoch [76][100/272]	lr: 1.000e-04, eta: 1:13:09, time: 0.211, data_time: 0.026, memory: 2002, loss: 2.0539
+2024-04-11 22:53:19,702 - mmcls - INFO - Epoch [76][200/272]	lr: 1.000e-04, eta: 1:13:04, time: 0.178, data_time: 0.003, memory: 2002, loss: 1.9619
+2024-04-11 22:53:33,959 - mmcls - INFO - Epoch(val) [76][34]	accuracy_top-1: 66.9118, accuracy_top-5: 93.3824
+2024-04-11 22:53:52,333 - mmcls - INFO - Epoch [77][100/272]	lr: 1.000e-04, eta: 1:12:36, time: 0.184, data_time: 0.025, memory: 2002, loss: 2.0155
+2024-04-11 22:54:07,991 - mmcls - INFO - Epoch [77][200/272]	lr: 1.000e-04, eta: 1:12:27, time: 0.157, data_time: 0.003, memory: 2002, loss: 2.0275
+2024-04-11 22:54:19,912 - mmcls - INFO - Epoch(val) [77][34]	accuracy_top-1: 63.9706, accuracy_top-5: 94.1176
+2024-04-11 22:54:35,999 - mmcls - INFO - Epoch [78][100/272]	lr: 1.000e-04, eta: 1:11:55, time: 0.161, data_time: 0.025, memory: 2002, loss: 2.0285
+2024-04-11 22:54:51,905 - mmcls - INFO - Epoch [78][200/272]	lr: 1.000e-04, eta: 1:11:47, time: 0.159, data_time: 0.003, memory: 2002, loss: 2.0002
+2024-04-11 22:55:05,847 - mmcls - INFO - Epoch(val) [78][34]	accuracy_top-1: 59.5588, accuracy_top-5: 96.3235
+2024-04-11 22:55:23,910 - mmcls - INFO - Epoch [79][100/272]	lr: 1.000e-04, eta: 1:11:18, time: 0.181, data_time: 0.026, memory: 2002, loss: 2.0351
+2024-04-11 22:55:38,769 - mmcls - INFO - Epoch [79][200/272]	lr: 1.000e-04, eta: 1:11:08, time: 0.149, data_time: 0.003, memory: 2002, loss: 2.0292
+2024-04-11 22:55:51,896 - mmcls - INFO - Epoch(val) [79][34]	accuracy_top-1: 63.2353, accuracy_top-5: 94.8529
+2024-04-11 22:56:10,540 - mmcls - INFO - Epoch [80][100/272]	lr: 1.000e-04, eta: 1:10:40, time: 0.186, data_time: 0.025, memory: 2002, loss: 2.0053
+2024-04-11 22:56:27,034 - mmcls - INFO - Epoch [80][200/272]	lr: 1.000e-04, eta: 1:10:33, time: 0.165, data_time: 0.003, memory: 2002, loss: 2.0498
+2024-04-11 22:56:40,458 - mmcls - INFO - Epoch(val) [80][34]	accuracy_top-1: 63.9706, accuracy_top-5: 95.5882
+2024-04-11 22:56:57,723 - mmcls - INFO - Epoch [81][100/272]	lr: 1.000e-04, eta: 1:10:03, time: 0.172, data_time: 0.025, memory: 2002, loss: 2.0234
+2024-04-11 22:57:13,049 - mmcls - INFO - Epoch [81][200/272]	lr: 1.000e-04, eta: 1:09:54, time: 0.153, data_time: 0.003, memory: 2002, loss: 1.9881
+2024-04-11 22:57:25,923 - mmcls - INFO - Epoch(val) [81][34]	accuracy_top-1: 63.9706, accuracy_top-5: 93.3824
+2024-04-11 22:57:42,933 - mmcls - INFO - Epoch [82][100/272]	lr: 1.000e-04, eta: 1:09:24, time: 0.170, data_time: 0.026, memory: 2002, loss: 1.9854
+2024-04-11 22:57:58,380 - mmcls - INFO - Epoch [82][200/272]	lr: 1.000e-04, eta: 1:09:14, time: 0.154, data_time: 0.004, memory: 2002, loss: 2.0741
+2024-04-11 22:58:10,654 - mmcls - INFO - Epoch(val) [82][34]	accuracy_top-1: 65.4412, accuracy_top-5: 94.1176
+2024-04-11 22:58:29,311 - mmcls - INFO - Epoch [83][100/272]	lr: 1.000e-04, eta: 1:08:47, time: 0.186, data_time: 0.026, memory: 2002, loss: 2.0117
+2024-04-11 22:58:44,695 - mmcls - INFO - Epoch [83][200/272]	lr: 1.000e-04, eta: 1:08:38, time: 0.154, data_time: 0.003, memory: 2002, loss: 2.0430
+2024-04-11 22:58:59,803 - mmcls - INFO - Epoch(val) [83][34]	accuracy_top-1: 66.1765, accuracy_top-5: 96.3235
+2024-04-11 22:59:16,574 - mmcls - INFO - Epoch [84][100/272]	lr: 1.000e-04, eta: 1:08:08, time: 0.168, data_time: 0.025, memory: 2002, loss: 1.9818
+2024-04-11 22:59:31,770 - mmcls - INFO - Epoch [84][200/272]	lr: 1.000e-04, eta: 1:07:58, time: 0.152, data_time: 0.003, memory: 2002, loss: 2.0139
+2024-04-11 22:59:44,692 - mmcls - INFO - Epoch(val) [84][34]	accuracy_top-1: 67.6471, accuracy_top-5: 95.5882
+2024-04-11 23:00:01,351 - mmcls - INFO - Epoch [85][100/272]	lr: 1.000e-04, eta: 1:07:28, time: 0.166, data_time: 0.026, memory: 2002, loss: 1.9271
+2024-04-11 23:00:14,703 - mmcls - INFO - Epoch [85][200/272]	lr: 1.000e-04, eta: 1:07:16, time: 0.133, data_time: 0.003, memory: 2002, loss: 2.0278
+2024-04-11 23:00:25,493 - mmcls - INFO - Epoch(val) [85][34]	accuracy_top-1: 62.5000, accuracy_top-5: 95.5882
+2024-04-11 23:00:41,483 - mmcls - INFO - Epoch [86][100/272]	lr: 1.000e-04, eta: 1:06:46, time: 0.160, data_time: 0.025, memory: 2002, loss: 2.0493
+2024-04-11 23:00:53,549 - mmcls - INFO - Epoch [86][200/272]	lr: 1.000e-04, eta: 1:06:32, time: 0.121, data_time: 0.002, memory: 2002, loss: 2.0616
+2024-04-11 23:01:04,947 - mmcls - INFO - Epoch(val) [86][34]	accuracy_top-1: 65.4412, accuracy_top-5: 93.3824
+2024-04-11 23:01:25,146 - mmcls - INFO - Epoch [87][100/272]	lr: 1.000e-04, eta: 1:06:07, time: 0.202, data_time: 0.026, memory: 2002, loss: 2.0163
+2024-04-11 23:01:45,388 - mmcls - INFO - Epoch [87][200/272]	lr: 1.000e-04, eta: 1:06:04, time: 0.202, data_time: 0.004, memory: 2002, loss: 2.0180
+2024-04-11 23:01:56,634 - mmcls - INFO - Epoch(val) [87][34]	accuracy_top-1: 63.9706, accuracy_top-5: 95.5882
+2024-04-11 23:02:11,197 - mmcls - INFO - Epoch [88][100/272]	lr: 1.000e-04, eta: 1:05:32, time: 0.146, data_time: 0.024, memory: 2002, loss: 2.0848
+2024-04-11 23:02:23,809 - mmcls - INFO - Epoch [88][200/272]	lr: 1.000e-04, eta: 1:05:19, time: 0.126, data_time: 0.002, memory: 2002, loss: 2.0542
+2024-04-11 23:02:34,410 - mmcls - INFO - Epoch(val) [88][34]	accuracy_top-1: 62.5000, accuracy_top-5: 97.0588
+2024-04-11 23:02:51,330 - mmcls - INFO - Epoch [89][100/272]	lr: 1.000e-04, eta: 1:04:50, time: 0.169, data_time: 0.025, memory: 2002, loss: 1.9977
+2024-04-11 23:03:05,823 - mmcls - INFO - Epoch [89][200/272]	lr: 1.000e-04, eta: 1:04:40, time: 0.145, data_time: 0.003, memory: 2002, loss: 2.0463
+2024-04-11 23:03:19,647 - mmcls - INFO - Epoch(val) [89][34]	accuracy_top-1: 63.2353, accuracy_top-5: 94.8529
+2024-04-11 23:03:39,457 - mmcls - INFO - Epoch [90][100/272]	lr: 1.000e-04, eta: 1:04:15, time: 0.198, data_time: 0.025, memory: 2002, loss: 2.0122
+2024-04-11 23:03:56,807 - mmcls - INFO - Epoch [90][200/272]	lr: 1.000e-04, eta: 1:04:08, time: 0.173, data_time: 0.003, memory: 2002, loss: 2.0336
+2024-04-11 23:04:10,998 - mmcls - INFO - Epoch(val) [90][34]	accuracy_top-1: 65.4412, accuracy_top-5: 95.5882
+2024-04-11 23:04:30,516 - mmcls - INFO - Epoch [91][100/272]	lr: 1.000e-04, eta: 1:03:42, time: 0.195, data_time: 0.025, memory: 2002, loss: 2.0125
+2024-04-11 23:04:48,156 - mmcls - INFO - Epoch [91][200/272]	lr: 1.000e-04, eta: 1:03:35, time: 0.176, data_time: 0.003, memory: 2002, loss: 2.0881
+2024-04-11 23:05:05,066 - mmcls - INFO - Epoch(val) [91][34]	accuracy_top-1: 66.9118, accuracy_top-5: 96.3235
+2024-04-11 23:05:25,296 - mmcls - INFO - Epoch [92][100/272]	lr: 1.000e-04, eta: 1:03:11, time: 0.202, data_time: 0.025, memory: 2002, loss: 1.9137
+2024-04-11 23:05:41,857 - mmcls - INFO - Epoch [92][200/272]	lr: 1.000e-04, eta: 1:03:03, time: 0.166, data_time: 0.003, memory: 2002, loss: 2.0400
+2024-04-11 23:05:55,802 - mmcls - INFO - Epoch(val) [92][34]	accuracy_top-1: 66.1765, accuracy_top-5: 94.1176
+2024-04-11 23:06:17,677 - mmcls - INFO - Epoch [93][100/272]	lr: 1.000e-04, eta: 1:02:40, time: 0.219, data_time: 0.026, memory: 2002, loss: 1.9679
+2024-04-11 23:06:36,383 - mmcls - INFO - Epoch [93][200/272]	lr: 1.000e-04, eta: 1:02:34, time: 0.187, data_time: 0.004, memory: 2002, loss: 2.0490
+2024-04-11 23:06:50,654 - mmcls - INFO - Epoch(val) [93][34]	accuracy_top-1: 66.1765, accuracy_top-5: 95.5882
+2024-04-11 23:07:10,666 - mmcls - INFO - Epoch [94][100/272]	lr: 1.000e-04, eta: 1:02:10, time: 0.200, data_time: 0.026, memory: 2002, loss: 2.0266
+2024-04-11 23:07:23,688 - mmcls - INFO - Epoch [94][200/272]	lr: 1.000e-04, eta: 1:01:57, time: 0.130, data_time: 0.003, memory: 2002, loss: 1.9658
+2024-04-11 23:07:35,425 - mmcls - INFO - Epoch(val) [94][34]	accuracy_top-1: 69.1176, accuracy_top-5: 94.8529
+2024-04-11 23:07:55,031 - mmcls - INFO - Epoch [95][100/272]	lr: 1.000e-04, eta: 1:01:32, time: 0.196, data_time: 0.025, memory: 2002, loss: 1.9126
+2024-04-11 23:08:14,339 - mmcls - INFO - Epoch [95][200/272]	lr: 1.000e-04, eta: 1:01:26, time: 0.193, data_time: 0.004, memory: 2002, loss: 2.0008
+2024-04-11 23:08:28,437 - mmcls - INFO - Epoch(val) [95][34]	accuracy_top-1: 63.9706, accuracy_top-5: 91.9118
+2024-04-11 23:08:47,601 - mmcls - INFO - Epoch [96][100/272]	lr: 1.000e-04, eta: 1:01:01, time: 0.191, data_time: 0.025, memory: 2002, loss: 1.9951
+2024-04-11 23:09:05,584 - mmcls - INFO - Epoch [96][200/272]	lr: 1.000e-04, eta: 1:00:54, time: 0.180, data_time: 0.003, memory: 2002, loss: 2.0691
+2024-04-11 23:09:20,702 - mmcls - INFO - Epoch(val) [96][34]	accuracy_top-1: 66.1765, accuracy_top-5: 93.3824
+2024-04-11 23:09:40,610 - mmcls - INFO - Epoch [97][100/272]	lr: 1.000e-04, eta: 1:00:29, time: 0.199, data_time: 0.025, memory: 2002, loss: 2.0266
+2024-04-11 23:09:58,828 - mmcls - INFO - Epoch [97][200/272]	lr: 1.000e-04, eta: 1:00:22, time: 0.182, data_time: 0.004, memory: 2002, loss: 2.0166
+2024-04-11 23:10:13,915 - mmcls - INFO - Epoch(val) [97][34]	accuracy_top-1: 65.4412, accuracy_top-5: 94.1176
+2024-04-11 23:10:32,965 - mmcls - INFO - Epoch [98][100/272]	lr: 1.000e-04, eta: 0:59:56, time: 0.190, data_time: 0.025, memory: 2002, loss: 1.9871
+2024-04-11 23:10:47,245 - mmcls - INFO - Epoch [98][200/272]	lr: 1.000e-04, eta: 0:59:45, time: 0.143, data_time: 0.003, memory: 2002, loss: 2.0164
+2024-04-11 23:11:00,822 - mmcls - INFO - Epoch(val) [98][34]	accuracy_top-1: 68.3824, accuracy_top-5: 96.3235
+2024-04-11 23:11:21,435 - mmcls - INFO - Epoch [99][100/272]	lr: 1.000e-04, eta: 0:59:21, time: 0.206, data_time: 0.025, memory: 2002, loss: 2.0522
+2024-04-11 23:11:40,323 - mmcls - INFO - Epoch [99][200/272]	lr: 1.000e-04, eta: 0:59:14, time: 0.189, data_time: 0.003, memory: 2002, loss: 1.9220
+2024-04-11 23:11:55,753 - mmcls - INFO - Epoch(val) [99][34]	accuracy_top-1: 66.1765, accuracy_top-5: 95.5882
+2024-04-11 23:12:14,619 - mmcls - INFO - Epoch [100][100/272]	lr: 1.000e-04, eta: 0:58:49, time: 0.189, data_time: 0.025, memory: 2002, loss: 2.0401
+2024-04-11 23:12:28,391 - mmcls - INFO - Epoch [100][200/272]	lr: 1.000e-04, eta: 0:58:37, time: 0.138, data_time: 0.003, memory: 2002, loss: 1.9656
+2024-04-11 23:12:37,873 - mmcls - INFO - Saving checkpoint at 100 epochs
+2024-04-11 23:12:43,337 - mmcls - INFO - Epoch(val) [100][34]	accuracy_top-1: 65.4412, accuracy_top-5: 94.1176
+2024-04-11 23:13:03,557 - mmcls - INFO - Epoch [101][100/272]	lr: 1.000e-05, eta: 0:58:13, time: 0.202, data_time: 0.025, memory: 2002, loss: 2.0259
+2024-04-11 23:13:20,408 - mmcls - INFO - Epoch [101][200/272]	lr: 1.000e-05, eta: 0:58:04, time: 0.168, data_time: 0.003, memory: 2002, loss: 1.9650
+2024-04-11 23:13:33,391 - mmcls - INFO - Epoch(val) [101][34]	accuracy_top-1: 67.6471, accuracy_top-5: 95.5882
+2024-04-11 23:13:55,833 - mmcls - INFO - Epoch [102][100/272]	lr: 1.000e-05, eta: 0:57:42, time: 0.224, data_time: 0.026, memory: 2002, loss: 1.9043
+2024-04-11 23:14:16,459 - mmcls - INFO - Epoch [102][200/272]	lr: 1.000e-05, eta: 0:57:36, time: 0.206, data_time: 0.004, memory: 2002, loss: 1.9581
+2024-04-11 23:14:31,928 - mmcls - INFO - Epoch(val) [102][34]	accuracy_top-1: 66.9118, accuracy_top-5: 95.5882
+2024-04-11 23:14:50,001 - mmcls - INFO - Epoch [103][100/272]	lr: 1.000e-05, eta: 0:57:10, time: 0.181, data_time: 0.025, memory: 2002, loss: 1.9180
+2024-04-11 23:15:07,900 - mmcls - INFO - Epoch [103][200/272]	lr: 1.000e-05, eta: 0:57:02, time: 0.179, data_time: 0.004, memory: 2002, loss: 1.9082
+2024-04-11 23:15:23,394 - mmcls - INFO - Epoch(val) [103][34]	accuracy_top-1: 66.9118, accuracy_top-5: 95.5882
+2024-04-11 23:15:41,545 - mmcls - INFO - Epoch [104][100/272]	lr: 1.000e-05, eta: 0:56:36, time: 0.181, data_time: 0.025, memory: 2002, loss: 1.9137
+2024-04-11 23:15:55,765 - mmcls - INFO - Epoch [104][200/272]	lr: 1.000e-05, eta: 0:56:24, time: 0.142, data_time: 0.003, memory: 2002, loss: 1.9382
+2024-04-11 23:16:08,459 - mmcls - INFO - Epoch(val) [104][34]	accuracy_top-1: 69.1176, accuracy_top-5: 95.5882
+2024-04-11 23:16:27,283 - mmcls - INFO - Epoch [105][100/272]	lr: 1.000e-05, eta: 0:55:59, time: 0.188, data_time: 0.025, memory: 2002, loss: 1.9604
+2024-04-11 23:16:44,728 - mmcls - INFO - Epoch [105][200/272]	lr: 1.000e-05, eta: 0:55:50, time: 0.174, data_time: 0.003, memory: 2002, loss: 1.9444
+2024-04-11 23:17:00,987 - mmcls - INFO - Epoch(val) [105][34]	accuracy_top-1: 67.6471, accuracy_top-5: 95.5882
+2024-04-11 23:17:21,783 - mmcls - INFO - Epoch [106][100/272]	lr: 1.000e-05, eta: 0:55:26, time: 0.208, data_time: 0.025, memory: 2002, loss: 1.9256
+2024-04-11 23:17:38,708 - mmcls - INFO - Epoch [106][200/272]	lr: 1.000e-05, eta: 0:55:17, time: 0.169, data_time: 0.003, memory: 2002, loss: 1.9296
+2024-04-11 23:17:52,399 - mmcls - INFO - Epoch(val) [106][34]	accuracy_top-1: 68.3824, accuracy_top-5: 95.5882
+2024-04-11 23:18:13,034 - mmcls - INFO - Epoch [107][100/272]	lr: 1.000e-05, eta: 0:54:53, time: 0.206, data_time: 0.025, memory: 2002, loss: 1.9014
+2024-04-11 23:18:31,526 - mmcls - INFO - Epoch [107][200/272]	lr: 1.000e-05, eta: 0:54:45, time: 0.185, data_time: 0.006, memory: 2002, loss: 1.9578
+2024-04-11 23:18:47,708 - mmcls - INFO - Epoch(val) [107][34]	accuracy_top-1: 68.3824, accuracy_top-5: 95.5882
+2024-04-11 23:19:09,642 - mmcls - INFO - Epoch [108][100/272]	lr: 1.000e-05, eta: 0:54:23, time: 0.219, data_time: 0.025, memory: 2002, loss: 1.8731
+2024-04-11 23:19:28,558 - mmcls - INFO - Epoch [108][200/272]	lr: 1.000e-05, eta: 0:54:15, time: 0.189, data_time: 0.003, memory: 2002, loss: 1.9022
+2024-04-11 23:19:43,982 - mmcls - INFO - Epoch(val) [108][34]	accuracy_top-1: 68.3824, accuracy_top-5: 95.5882
+2024-04-11 23:20:04,134 - mmcls - INFO - Epoch [109][100/272]	lr: 1.000e-05, eta: 0:53:51, time: 0.201, data_time: 0.025, memory: 2002, loss: 1.9378
+2024-04-11 23:20:21,119 - mmcls - INFO - Epoch [109][200/272]	lr: 1.000e-05, eta: 0:53:41, time: 0.170, data_time: 0.003, memory: 2002, loss: 1.9089
+2024-04-11 23:20:35,788 - mmcls - INFO - Epoch(val) [109][34]	accuracy_top-1: 68.3824, accuracy_top-5: 95.5882
+2024-04-11 23:20:59,260 - mmcls - INFO - Epoch [110][100/272]	lr: 1.000e-05, eta: 0:53:20, time: 0.235, data_time: 0.026, memory: 2002, loss: 1.8982
+2024-04-11 23:21:18,818 - mmcls - INFO - Epoch [110][200/272]	lr: 1.000e-05, eta: 0:53:12, time: 0.196, data_time: 0.004, memory: 2002, loss: 1.9174
+2024-04-11 23:21:34,086 - mmcls - INFO - Epoch(val) [110][34]	accuracy_top-1: 67.6471, accuracy_top-5: 95.5882
+2024-04-11 23:21:50,979 - mmcls - INFO - Epoch [111][100/272]	lr: 1.000e-05, eta: 0:52:45, time: 0.167, data_time: 0.025, memory: 2002, loss: 1.9378
+2024-04-11 23:22:03,947 - mmcls - INFO - Epoch [111][200/272]	lr: 1.000e-05, eta: 0:52:32, time: 0.130, data_time: 0.003, memory: 2002, loss: 1.8782
+2024-04-11 23:22:15,224 - mmcls - INFO - Epoch(val) [111][34]	accuracy_top-1: 69.1176, accuracy_top-5: 95.5882
+2024-04-11 23:22:32,260 - mmcls - INFO - Epoch [112][100/272]	lr: 1.000e-05, eta: 0:52:06, time: 0.170, data_time: 0.025, memory: 2002, loss: 1.9325
+2024-04-11 23:22:47,351 - mmcls - INFO - Epoch [112][200/272]	lr: 1.000e-05, eta: 0:51:54, time: 0.151, data_time: 0.003, memory: 2002, loss: 1.8636
+2024-04-11 23:22:59,565 - mmcls - INFO - Epoch(val) [112][34]	accuracy_top-1: 68.3824, accuracy_top-5: 95.5882
+2024-04-11 23:23:17,269 - mmcls - INFO - Epoch [113][100/272]	lr: 1.000e-05, eta: 0:51:28, time: 0.177, data_time: 0.025, memory: 2002, loss: 1.9069
+2024-04-11 23:23:35,452 - mmcls - INFO - Epoch [113][200/272]	lr: 1.000e-05, eta: 0:51:19, time: 0.182, data_time: 0.004, memory: 2002, loss: 1.9040
+2024-04-11 23:23:48,018 - mmcls - INFO - Epoch(val) [113][34]	accuracy_top-1: 69.8529, accuracy_top-5: 95.5882
+2024-04-11 23:24:08,020 - mmcls - INFO - Epoch [114][100/272]	lr: 1.000e-05, eta: 0:50:55, time: 0.200, data_time: 0.026, memory: 2002, loss: 1.8975
+2024-04-11 23:24:26,924 - mmcls - INFO - Epoch [114][200/272]	lr: 1.000e-05, eta: 0:50:47, time: 0.189, data_time: 0.003, memory: 2002, loss: 1.9235
+2024-04-11 23:24:41,967 - mmcls - INFO - Epoch(val) [114][34]	accuracy_top-1: 68.3824, accuracy_top-5: 95.5882
+2024-04-11 23:25:01,183 - mmcls - INFO - Epoch [115][100/272]	lr: 1.000e-05, eta: 0:50:22, time: 0.192, data_time: 0.025, memory: 2002, loss: 1.8811
+2024-04-11 23:25:14,096 - mmcls - INFO - Epoch [115][200/272]	lr: 1.000e-05, eta: 0:50:09, time: 0.129, data_time: 0.003, memory: 2002, loss: 1.9989
+2024-04-11 23:25:27,028 - mmcls - INFO - Epoch(val) [115][34]	accuracy_top-1: 69.1176, accuracy_top-5: 95.5882
+2024-04-11 23:25:47,190 - mmcls - INFO - Epoch [116][100/272]	lr: 1.000e-05, eta: 0:49:45, time: 0.201, data_time: 0.026, memory: 2002, loss: 1.9381
+2024-04-11 23:26:03,308 - mmcls - INFO - Epoch [116][200/272]	lr: 1.000e-05, eta: 0:49:35, time: 0.161, data_time: 0.003, memory: 2002, loss: 1.8921
+2024-04-11 23:26:16,796 - mmcls - INFO - Epoch(val) [116][34]	accuracy_top-1: 68.3824, accuracy_top-5: 95.5882
+2024-04-11 23:26:37,584 - mmcls - INFO - Epoch [117][100/272]	lr: 1.000e-05, eta: 0:49:11, time: 0.208, data_time: 0.025, memory: 2002, loss: 1.8364
+2024-04-11 23:26:56,159 - mmcls - INFO - Epoch [117][200/272]	lr: 1.000e-05, eta: 0:49:02, time: 0.186, data_time: 0.007, memory: 2002, loss: 1.9044
+2024-04-11 23:27:10,217 - mmcls - INFO - Epoch(val) [117][34]	accuracy_top-1: 69.8529, accuracy_top-5: 94.8529
+2024-04-11 23:27:29,272 - mmcls - INFO - Epoch [118][100/272]	lr: 1.000e-05, eta: 0:48:37, time: 0.190, data_time: 0.025, memory: 2002, loss: 1.9158
+2024-04-11 23:27:41,410 - mmcls - INFO - Epoch [118][200/272]	lr: 1.000e-05, eta: 0:48:24, time: 0.121, data_time: 0.002, memory: 2002, loss: 1.8752
+2024-04-11 23:27:53,660 - mmcls - INFO - Epoch(val) [118][34]	accuracy_top-1: 68.3824, accuracy_top-5: 95.5882
+2024-04-11 23:28:13,737 - mmcls - INFO - Epoch [119][100/272]	lr: 1.000e-05, eta: 0:48:00, time: 0.201, data_time: 0.025, memory: 2002, loss: 1.9045
+2024-04-11 23:28:32,279 - mmcls - INFO - Epoch [119][200/272]	lr: 1.000e-05, eta: 0:47:51, time: 0.185, data_time: 0.003, memory: 2002, loss: 1.8659
+2024-04-11 23:28:45,527 - mmcls - INFO - Epoch(val) [119][34]	accuracy_top-1: 70.5882, accuracy_top-5: 96.3235
+2024-04-11 23:29:02,170 - mmcls - INFO - Epoch [120][100/272]	lr: 1.000e-05, eta: 0:47:25, time: 0.166, data_time: 0.025, memory: 2002, loss: 1.9505
+2024-04-11 23:29:15,405 - mmcls - INFO - Epoch [120][200/272]	lr: 1.000e-05, eta: 0:47:12, time: 0.132, data_time: 0.003, memory: 2002, loss: 1.8846
+2024-04-11 23:29:27,594 - mmcls - INFO - Epoch(val) [120][34]	accuracy_top-1: 69.1176, accuracy_top-5: 95.5882
+2024-04-11 23:29:45,097 - mmcls - INFO - Epoch [121][100/272]	lr: 1.000e-05, eta: 0:46:46, time: 0.175, data_time: 0.024, memory: 2002, loss: 1.9357
+2024-04-11 23:29:59,913 - mmcls - INFO - Epoch [121][200/272]	lr: 1.000e-05, eta: 0:46:35, time: 0.148, data_time: 0.003, memory: 2002, loss: 1.8980
+2024-04-11 23:30:12,181 - mmcls - INFO - Epoch(val) [121][34]	accuracy_top-1: 69.1176, accuracy_top-5: 95.5882
+2024-04-11 23:30:27,936 - mmcls - INFO - Epoch [122][100/272]	lr: 1.000e-05, eta: 0:46:08, time: 0.157, data_time: 0.025, memory: 2002, loss: 1.8671
+2024-04-11 23:30:43,348 - mmcls - INFO - Epoch [122][200/272]	lr: 1.000e-05, eta: 0:45:57, time: 0.154, data_time: 0.003, memory: 2002, loss: 1.8866
+2024-04-11 23:30:58,126 - mmcls - INFO - Epoch(val) [122][34]	accuracy_top-1: 69.1176, accuracy_top-5: 96.3235
+2024-04-11 23:31:16,329 - mmcls - INFO - Epoch [123][100/272]	lr: 1.000e-05, eta: 0:45:32, time: 0.182, data_time: 0.025, memory: 2002, loss: 1.9257
+2024-04-11 23:31:33,723 - mmcls - INFO - Epoch [123][200/272]	lr: 1.000e-05, eta: 0:45:22, time: 0.174, data_time: 0.003, memory: 2002, loss: 1.9348
+2024-04-11 23:31:48,644 - mmcls - INFO - Epoch(val) [123][34]	accuracy_top-1: 69.8529, accuracy_top-5: 95.5882
+2024-04-11 23:32:06,989 - mmcls - INFO - Epoch [124][100/272]	lr: 1.000e-05, eta: 0:44:57, time: 0.183, data_time: 0.026, memory: 2002, loss: 1.9174
+2024-04-11 23:32:22,818 - mmcls - INFO - Epoch [124][200/272]	lr: 1.000e-05, eta: 0:44:46, time: 0.158, data_time: 0.004, memory: 2002, loss: 1.9446
+2024-04-11 23:32:36,793 - mmcls - INFO - Epoch(val) [124][34]	accuracy_top-1: 69.8529, accuracy_top-5: 96.3235
+2024-04-11 23:32:56,161 - mmcls - INFO - Epoch [125][100/272]	lr: 1.000e-05, eta: 0:44:22, time: 0.194, data_time: 0.026, memory: 2002, loss: 1.9421
+2024-04-11 23:33:14,242 - mmcls - INFO - Epoch [125][200/272]	lr: 1.000e-05, eta: 0:44:12, time: 0.181, data_time: 0.003, memory: 2002, loss: 1.9342
+2024-04-11 23:33:29,562 - mmcls - INFO - Epoch(val) [125][34]	accuracy_top-1: 69.8529, accuracy_top-5: 96.3235
+2024-04-11 23:33:49,495 - mmcls - INFO - Epoch [126][100/272]	lr: 1.000e-05, eta: 0:43:48, time: 0.199, data_time: 0.025, memory: 2002, loss: 1.9197
+2024-04-11 23:34:06,496 - mmcls - INFO - Epoch [126][200/272]	lr: 1.000e-05, eta: 0:43:38, time: 0.170, data_time: 0.003, memory: 2002, loss: 1.9259
+2024-04-11 23:34:20,150 - mmcls - INFO - Epoch(val) [126][34]	accuracy_top-1: 69.1176, accuracy_top-5: 96.3235
+2024-04-11 23:34:39,228 - mmcls - INFO - Epoch [127][100/272]	lr: 1.000e-05, eta: 0:43:13, time: 0.191, data_time: 0.025, memory: 2002, loss: 1.9023
+2024-04-11 23:34:55,503 - mmcls - INFO - Epoch [127][200/272]	lr: 1.000e-05, eta: 0:43:02, time: 0.163, data_time: 0.003, memory: 2002, loss: 1.9084
+2024-04-11 23:35:08,922 - mmcls - INFO - Epoch(val) [127][34]	accuracy_top-1: 69.1176, accuracy_top-5: 95.5882
+2024-04-11 23:35:29,498 - mmcls - INFO - Epoch [128][100/272]	lr: 1.000e-05, eta: 0:42:39, time: 0.206, data_time: 0.025, memory: 2002, loss: 1.9707
+2024-04-11 23:35:48,939 - mmcls - INFO - Epoch [128][200/272]	lr: 1.000e-05, eta: 0:42:30, time: 0.194, data_time: 0.006, memory: 2002, loss: 1.8960
+2024-04-11 23:36:04,589 - mmcls - INFO - Epoch(val) [128][34]	accuracy_top-1: 68.3824, accuracy_top-5: 96.3235
+2024-04-11 23:36:26,224 - mmcls - INFO - Epoch [129][100/272]	lr: 1.000e-05, eta: 0:42:07, time: 0.216, data_time: 0.025, memory: 2002, loss: 1.8558
+2024-04-11 23:36:46,346 - mmcls - INFO - Epoch [129][200/272]	lr: 1.000e-05, eta: 0:41:58, time: 0.201, data_time: 0.004, memory: 2002, loss: 1.9204
+2024-04-11 23:37:02,780 - mmcls - INFO - Epoch(val) [129][34]	accuracy_top-1: 69.1176, accuracy_top-5: 96.3235
+2024-04-11 23:37:24,087 - mmcls - INFO - Epoch [130][100/272]	lr: 1.000e-05, eta: 0:41:35, time: 0.213, data_time: 0.026, memory: 2002, loss: 1.9303
+2024-04-11 23:37:42,134 - mmcls - INFO - Epoch [130][200/272]	lr: 1.000e-05, eta: 0:41:25, time: 0.180, data_time: 0.004, memory: 2002, loss: 1.9973
+2024-04-11 23:37:58,978 - mmcls - INFO - Epoch(val) [130][34]	accuracy_top-1: 66.9118, accuracy_top-5: 96.3235
+2024-04-11 23:38:18,386 - mmcls - INFO - Epoch [131][100/272]	lr: 1.000e-05, eta: 0:41:01, time: 0.194, data_time: 0.026, memory: 2002, loss: 1.8594
+2024-04-11 23:38:35,468 - mmcls - INFO - Epoch [131][200/272]	lr: 1.000e-05, eta: 0:40:50, time: 0.171, data_time: 0.005, memory: 2002, loss: 1.8828
+2024-04-11 23:38:51,531 - mmcls - INFO - Epoch(val) [131][34]	accuracy_top-1: 68.3824, accuracy_top-5: 95.5882
+2024-04-11 23:39:08,754 - mmcls - INFO - Epoch [132][100/272]	lr: 1.000e-05, eta: 0:40:25, time: 0.172, data_time: 0.026, memory: 2002, loss: 1.9301
+2024-04-11 23:39:22,976 - mmcls - INFO - Epoch [132][200/272]	lr: 1.000e-05, eta: 0:40:13, time: 0.142, data_time: 0.003, memory: 2002, loss: 1.9004
+2024-04-11 23:39:35,368 - mmcls - INFO - Epoch(val) [132][34]	accuracy_top-1: 69.1176, accuracy_top-5: 96.3235
+2024-04-11 23:39:51,689 - mmcls - INFO - Epoch [133][100/272]	lr: 1.000e-05, eta: 0:39:47, time: 0.163, data_time: 0.025, memory: 2002, loss: 1.8413
+2024-04-11 23:40:04,712 - mmcls - INFO - Epoch [133][200/272]	lr: 1.000e-05, eta: 0:39:34, time: 0.130, data_time: 0.003, memory: 2002, loss: 1.9425
+2024-04-11 23:40:17,363 - mmcls - INFO - Epoch(val) [133][34]	accuracy_top-1: 70.5882, accuracy_top-5: 96.3235
+2024-04-11 23:40:38,379 - mmcls - INFO - Epoch [134][100/272]	lr: 1.000e-05, eta: 0:39:11, time: 0.210, data_time: 0.026, memory: 2002, loss: 1.9151
+2024-04-11 23:40:56,907 - mmcls - INFO - Epoch [134][200/272]	lr: 1.000e-05, eta: 0:39:01, time: 0.185, data_time: 0.004, memory: 2002, loss: 1.8640
+2024-04-11 23:41:11,264 - mmcls - INFO - Epoch(val) [134][34]	accuracy_top-1: 69.1176, accuracy_top-5: 96.3235
+2024-04-11 23:41:31,456 - mmcls - INFO - Epoch [135][100/272]	lr: 1.000e-05, eta: 0:38:38, time: 0.202, data_time: 0.025, memory: 2002, loss: 1.8627
+2024-04-11 23:41:50,474 - mmcls - INFO - Epoch [135][200/272]	lr: 1.000e-05, eta: 0:38:28, time: 0.190, data_time: 0.004, memory: 2002, loss: 1.8634
+2024-04-11 23:42:07,916 - mmcls - INFO - Epoch(val) [135][34]	accuracy_top-1: 69.1176, accuracy_top-5: 95.5882
+2024-04-11 23:42:28,927 - mmcls - INFO - Epoch [136][100/272]	lr: 1.000e-05, eta: 0:38:05, time: 0.210, data_time: 0.025, memory: 2002, loss: 1.9395
+2024-04-11 23:42:48,360 - mmcls - INFO - Epoch [136][200/272]	lr: 1.000e-05, eta: 0:37:55, time: 0.194, data_time: 0.004, memory: 2002, loss: 1.8499
+2024-04-11 23:43:04,322 - mmcls - INFO - Epoch(val) [136][34]	accuracy_top-1: 69.1176, accuracy_top-5: 96.3235
+2024-04-11 23:43:23,222 - mmcls - INFO - Epoch [137][100/272]	lr: 1.000e-05, eta: 0:37:31, time: 0.189, data_time: 0.025, memory: 2002, loss: 1.8835
+2024-04-11 23:43:41,893 - mmcls - INFO - Epoch [137][200/272]	lr: 1.000e-05, eta: 0:37:20, time: 0.187, data_time: 0.003, memory: 2002, loss: 1.9517
+2024-04-11 23:43:57,981 - mmcls - INFO - Epoch(val) [137][34]	accuracy_top-1: 69.8529, accuracy_top-5: 95.5882
+2024-04-11 23:44:14,521 - mmcls - INFO - Epoch [138][100/272]	lr: 1.000e-05, eta: 0:36:55, time: 0.165, data_time: 0.026, memory: 2002, loss: 1.9002
+2024-04-11 23:44:29,549 - mmcls - INFO - Epoch [138][200/272]	lr: 1.000e-05, eta: 0:36:43, time: 0.150, data_time: 0.003, memory: 2002, loss: 1.8930
+2024-04-11 23:44:42,343 - mmcls - INFO - Epoch(val) [138][34]	accuracy_top-1: 69.1176, accuracy_top-5: 96.3235
+2024-04-11 23:45:04,448 - mmcls - INFO - Epoch [139][100/272]	lr: 1.000e-05, eta: 0:36:21, time: 0.221, data_time: 0.026, memory: 2002, loss: 1.8874
+2024-04-11 23:45:23,471 - mmcls - INFO - Epoch [139][200/272]	lr: 1.000e-05, eta: 0:36:10, time: 0.190, data_time: 0.005, memory: 2002, loss: 1.9432
+2024-04-11 23:45:38,851 - mmcls - INFO - Epoch(val) [139][34]	accuracy_top-1: 69.1176, accuracy_top-5: 95.5882
+2024-04-11 23:46:01,628 - mmcls - INFO - Epoch [140][100/272]	lr: 1.000e-05, eta: 0:35:48, time: 0.228, data_time: 0.026, memory: 2002, loss: 1.9640
+2024-04-11 23:46:22,704 - mmcls - INFO - Epoch [140][200/272]	lr: 1.000e-05, eta: 0:35:38, time: 0.211, data_time: 0.004, memory: 2002, loss: 1.8715
+2024-04-11 23:46:39,594 - mmcls - INFO - Epoch(val) [140][34]	accuracy_top-1: 70.5882, accuracy_top-5: 95.5882
+2024-04-11 23:47:00,073 - mmcls - INFO - Epoch [141][100/272]	lr: 1.000e-05, eta: 0:35:15, time: 0.205, data_time: 0.025, memory: 2002, loss: 1.9062
+2024-04-11 23:47:17,154 - mmcls - INFO - Epoch [141][200/272]	lr: 1.000e-05, eta: 0:35:04, time: 0.171, data_time: 0.003, memory: 2002, loss: 1.8904
+2024-04-11 23:47:33,566 - mmcls - INFO - Epoch(val) [141][34]	accuracy_top-1: 69.1176, accuracy_top-5: 96.3235
+2024-04-11 23:47:56,048 - mmcls - INFO - Epoch [142][100/272]	lr: 1.000e-05, eta: 0:34:41, time: 0.225, data_time: 0.026, memory: 2002, loss: 1.8108
+2024-04-11 23:48:12,707 - mmcls - INFO - Epoch [142][200/272]	lr: 1.000e-05, eta: 0:34:30, time: 0.167, data_time: 0.004, memory: 2002, loss: 1.9049
+2024-04-11 23:48:28,649 - mmcls - INFO - Epoch(val) [142][34]	accuracy_top-1: 69.8529, accuracy_top-5: 95.5882
+2024-04-11 23:48:46,297 - mmcls - INFO - Epoch [143][100/272]	lr: 1.000e-05, eta: 0:34:05, time: 0.176, data_time: 0.025, memory: 2002, loss: 1.9959
+2024-04-11 23:49:01,751 - mmcls - INFO - Epoch [143][200/272]	lr: 1.000e-05, eta: 0:33:53, time: 0.155, data_time: 0.003, memory: 2002, loss: 1.8581
+2024-04-11 23:49:15,147 - mmcls - INFO - Epoch(val) [143][34]	accuracy_top-1: 69.1176, accuracy_top-5: 96.3235
+2024-04-11 23:49:35,240 - mmcls - INFO - Epoch [144][100/272]	lr: 1.000e-05, eta: 0:33:30, time: 0.201, data_time: 0.025, memory: 2002, loss: 1.9755
+2024-04-11 23:49:52,330 - mmcls - INFO - Epoch [144][200/272]	lr: 1.000e-05, eta: 0:33:18, time: 0.171, data_time: 0.003, memory: 2002, loss: 1.9338
+2024-04-11 23:50:06,703 - mmcls - INFO - Epoch(val) [144][34]	accuracy_top-1: 69.8529, accuracy_top-5: 95.5882
+2024-04-11 23:50:24,668 - mmcls - INFO - Epoch [145][100/272]	lr: 1.000e-05, eta: 0:32:54, time: 0.180, data_time: 0.025, memory: 2002, loss: 1.9097
+2024-04-11 23:50:39,117 - mmcls - INFO - Epoch [145][200/272]	lr: 1.000e-05, eta: 0:32:42, time: 0.144, data_time: 0.003, memory: 2002, loss: 1.8772
+2024-04-11 23:50:51,675 - mmcls - INFO - Epoch(val) [145][34]	accuracy_top-1: 69.1176, accuracy_top-5: 95.5882
+2024-04-11 23:51:09,458 - mmcls - INFO - Epoch [146][100/272]	lr: 1.000e-05, eta: 0:32:17, time: 0.178, data_time: 0.025, memory: 2002, loss: 1.9662
+2024-04-11 23:51:28,660 - mmcls - INFO - Epoch [146][200/272]	lr: 1.000e-05, eta: 0:32:07, time: 0.192, data_time: 0.004, memory: 2002, loss: 1.8697
+2024-04-11 23:51:43,433 - mmcls - INFO - Epoch(val) [146][34]	accuracy_top-1: 69.8529, accuracy_top-5: 95.5882
+2024-04-11 23:52:03,475 - mmcls - INFO - Epoch [147][100/272]	lr: 1.000e-05, eta: 0:31:43, time: 0.200, data_time: 0.025, memory: 2002, loss: 1.8717
+2024-04-11 23:52:19,812 - mmcls - INFO - Epoch [147][200/272]	lr: 1.000e-05, eta: 0:31:32, time: 0.163, data_time: 0.003, memory: 2002, loss: 1.8770
+2024-04-11 23:52:34,234 - mmcls - INFO - Epoch(val) [147][34]	accuracy_top-1: 69.1176, accuracy_top-5: 95.5882
+2024-04-11 23:52:50,832 - mmcls - INFO - Epoch [148][100/272]	lr: 1.000e-05, eta: 0:31:07, time: 0.166, data_time: 0.025, memory: 2002, loss: 1.8831
+2024-04-11 23:53:04,650 - mmcls - INFO - Epoch [148][200/272]	lr: 1.000e-05, eta: 0:30:54, time: 0.138, data_time: 0.003, memory: 2002, loss: 1.9338
+2024-04-11 23:53:18,409 - mmcls - INFO - Epoch(val) [148][34]	accuracy_top-1: 70.5882, accuracy_top-5: 95.5882
+2024-04-11 23:53:33,333 - mmcls - INFO - Epoch [149][100/272]	lr: 1.000e-05, eta: 0:30:29, time: 0.149, data_time: 0.024, memory: 2002, loss: 1.8975
+2024-04-11 23:53:45,536 - mmcls - INFO - Epoch [149][200/272]	lr: 1.000e-05, eta: 0:30:16, time: 0.122, data_time: 0.002, memory: 2002, loss: 1.9333
+2024-04-11 23:53:58,310 - mmcls - INFO - Epoch(val) [149][34]	accuracy_top-1: 69.8529, accuracy_top-5: 96.3235
+2024-04-11 23:54:14,701 - mmcls - INFO - Epoch [150][100/272]	lr: 1.000e-05, eta: 0:29:51, time: 0.164, data_time: 0.025, memory: 2002, loss: 1.8272
+2024-04-11 23:54:27,040 - mmcls - INFO - Epoch [150][200/272]	lr: 1.000e-05, eta: 0:29:38, time: 0.123, data_time: 0.002, memory: 2002, loss: 1.8048
+2024-04-11 23:54:37,588 - mmcls - INFO - Epoch(val) [150][34]	accuracy_top-1: 70.5882, accuracy_top-5: 96.3235
+2024-04-11 23:54:59,435 - mmcls - INFO - Epoch [151][100/272]	lr: 1.000e-06, eta: 0:29:16, time: 0.218, data_time: 0.026, memory: 2002, loss: 1.8671
+2024-04-11 23:55:16,368 - mmcls - INFO - Epoch [151][200/272]	lr: 1.000e-06, eta: 0:29:04, time: 0.169, data_time: 0.004, memory: 2002, loss: 1.8885
+2024-04-11 23:55:30,770 - mmcls - INFO - Epoch(val) [151][34]	accuracy_top-1: 70.5882, accuracy_top-5: 96.3235
+2024-04-11 23:55:48,143 - mmcls - INFO - Epoch [152][100/272]	lr: 1.000e-06, eta: 0:28:40, time: 0.174, data_time: 0.025, memory: 2002, loss: 1.8860
+2024-04-11 23:56:04,223 - mmcls - INFO - Epoch [152][200/272]	lr: 1.000e-06, eta: 0:28:28, time: 0.161, data_time: 0.003, memory: 2002, loss: 1.9400
+2024-04-11 23:56:19,827 - mmcls - INFO - Epoch(val) [152][34]	accuracy_top-1: 70.5882, accuracy_top-5: 96.3235
+2024-04-11 23:56:39,342 - mmcls - INFO - Epoch [153][100/272]	lr: 1.000e-06, eta: 0:28:05, time: 0.195, data_time: 0.025, memory: 2002, loss: 1.9095
+2024-04-11 23:56:56,407 - mmcls - INFO - Epoch [153][200/272]	lr: 1.000e-06, eta: 0:27:53, time: 0.171, data_time: 0.003, memory: 2002, loss: 1.8842
+2024-04-11 23:57:08,890 - mmcls - INFO - Epoch(val) [153][34]	accuracy_top-1: 69.8529, accuracy_top-5: 96.3235
+2024-04-11 23:57:28,733 - mmcls - INFO - Epoch [154][100/272]	lr: 1.000e-06, eta: 0:27:30, time: 0.198, data_time: 0.025, memory: 2002, loss: 1.8904
+2024-04-11 23:57:46,693 - mmcls - INFO - Epoch [154][200/272]	lr: 1.000e-06, eta: 0:27:18, time: 0.180, data_time: 0.003, memory: 2002, loss: 1.9219
+2024-04-11 23:58:01,775 - mmcls - INFO - Epoch(val) [154][34]	accuracy_top-1: 70.5882, accuracy_top-5: 96.3235
+2024-04-11 23:58:22,869 - mmcls - INFO - Epoch [155][100/272]	lr: 1.000e-06, eta: 0:26:55, time: 0.211, data_time: 0.026, memory: 2002, loss: 1.8587
+2024-04-11 23:58:40,156 - mmcls - INFO - Epoch [155][200/272]	lr: 1.000e-06, eta: 0:26:44, time: 0.173, data_time: 0.004, memory: 2002, loss: 1.9250
+2024-04-11 23:58:55,918 - mmcls - INFO - Epoch(val) [155][34]	accuracy_top-1: 69.8529, accuracy_top-5: 96.3235
+2024-04-11 23:59:15,443 - mmcls - INFO - Epoch [156][100/272]	lr: 1.000e-06, eta: 0:26:20, time: 0.195, data_time: 0.026, memory: 2002, loss: 1.8884
+2024-04-11 23:59:31,351 - mmcls - INFO - Epoch [156][200/272]	lr: 1.000e-06, eta: 0:26:08, time: 0.159, data_time: 0.003, memory: 2002, loss: 1.8606
+2024-04-11 23:59:46,779 - mmcls - INFO - Epoch(val) [156][34]	accuracy_top-1: 69.8529, accuracy_top-5: 96.3235
+2024-04-12 00:00:06,150 - mmcls - INFO - Epoch [157][100/272]	lr: 1.000e-06, eta: 0:25:45, time: 0.194, data_time: 0.025, memory: 2002, loss: 1.9426
+2024-04-12 00:00:23,403 - mmcls - INFO - Epoch [157][200/272]	lr: 1.000e-06, eta: 0:25:33, time: 0.173, data_time: 0.003, memory: 2002, loss: 1.9072
+2024-04-12 00:00:39,342 - mmcls - INFO - Epoch(val) [157][34]	accuracy_top-1: 69.8529, accuracy_top-5: 96.3235
+2024-04-12 00:00:59,343 - mmcls - INFO - Epoch [158][100/272]	lr: 1.000e-06, eta: 0:25:10, time: 0.200, data_time: 0.025, memory: 2002, loss: 1.9393
+2024-04-12 00:01:15,769 - mmcls - INFO - Epoch [158][200/272]	lr: 1.000e-06, eta: 0:24:58, time: 0.164, data_time: 0.003, memory: 2002, loss: 1.8796
+2024-04-12 00:01:30,466 - mmcls - INFO - Epoch(val) [158][34]	accuracy_top-1: 69.8529, accuracy_top-5: 96.3235
+2024-04-12 00:01:51,893 - mmcls - INFO - Epoch [159][100/272]	lr: 1.000e-06, eta: 0:24:35, time: 0.214, data_time: 0.025, memory: 2002, loss: 1.9068
+2024-04-12 00:02:07,979 - mmcls - INFO - Epoch [159][200/272]	lr: 1.000e-06, eta: 0:24:23, time: 0.161, data_time: 0.004, memory: 2002, loss: 1.8981
+2024-04-12 00:02:24,084 - mmcls - INFO - Epoch(val) [159][34]	accuracy_top-1: 69.1176, accuracy_top-5: 96.3235
+2024-04-12 00:02:46,007 - mmcls - INFO - Epoch [160][100/272]	lr: 1.000e-06, eta: 0:24:00, time: 0.219, data_time: 0.026, memory: 2002, loss: 1.8758
+2024-04-12 00:03:00,141 - mmcls - INFO - Epoch [160][200/272]	lr: 1.000e-06, eta: 0:23:48, time: 0.141, data_time: 0.003, memory: 2002, loss: 1.9781
+2024-04-12 00:03:11,960 - mmcls - INFO - Epoch(val) [160][34]	accuracy_top-1: 69.1176, accuracy_top-5: 96.3235
+2024-04-12 00:03:31,459 - mmcls - INFO - Epoch [161][100/272]	lr: 1.000e-06, eta: 0:23:24, time: 0.195, data_time: 0.025, memory: 2002, loss: 1.8917
+2024-04-12 00:03:48,938 - mmcls - INFO - Epoch [161][200/272]	lr: 1.000e-06, eta: 0:23:12, time: 0.175, data_time: 0.003, memory: 2002, loss: 1.8456
+2024-04-12 00:04:04,638 - mmcls - INFO - Epoch(val) [161][34]	accuracy_top-1: 69.1176, accuracy_top-5: 96.3235
+2024-04-12 00:04:25,649 - mmcls - INFO - Epoch [162][100/272]	lr: 1.000e-06, eta: 0:22:50, time: 0.210, data_time: 0.026, memory: 2002, loss: 1.9336
+2024-04-12 00:04:43,175 - mmcls - INFO - Epoch [162][200/272]	lr: 1.000e-06, eta: 0:22:38, time: 0.175, data_time: 0.003, memory: 2002, loss: 1.8203
+2024-04-12 00:04:56,509 - mmcls - INFO - Epoch(val) [162][34]	accuracy_top-1: 69.1176, accuracy_top-5: 96.3235
+2024-04-12 00:05:12,692 - mmcls - INFO - Epoch [163][100/272]	lr: 1.000e-06, eta: 0:22:14, time: 0.162, data_time: 0.025, memory: 2002, loss: 1.8879
+2024-04-12 00:05:25,886 - mmcls - INFO - Epoch [163][200/272]	lr: 1.000e-06, eta: 0:22:01, time: 0.132, data_time: 0.003, memory: 2002, loss: 1.8196
+2024-04-12 00:05:37,823 - mmcls - INFO - Epoch(val) [163][34]	accuracy_top-1: 69.1176, accuracy_top-5: 96.3235
+2024-04-12 00:05:57,412 - mmcls - INFO - Epoch [164][100/272]	lr: 1.000e-06, eta: 0:21:38, time: 0.196, data_time: 0.025, memory: 2002, loss: 1.8914
+2024-04-12 00:06:18,119 - mmcls - INFO - Epoch [164][200/272]	lr: 1.000e-06, eta: 0:21:26, time: 0.207, data_time: 0.005, memory: 2002, loss: 1.8500
+2024-04-12 00:06:33,282 - mmcls - INFO - Epoch(val) [164][34]	accuracy_top-1: 69.1176, accuracy_top-5: 96.3235
+2024-04-12 00:06:58,300 - mmcls - INFO - Epoch [165][100/272]	lr: 1.000e-06, eta: 0:21:05, time: 0.248, data_time: 0.026, memory: 2002, loss: 1.8772
+2024-04-12 00:07:16,059 - mmcls - INFO - Epoch [165][200/272]	lr: 1.000e-06, eta: 0:20:52, time: 0.178, data_time: 0.004, memory: 2002, loss: 1.8399
+2024-04-12 00:07:32,951 - mmcls - INFO - Epoch(val) [165][34]	accuracy_top-1: 69.1176, accuracy_top-5: 96.3235
+2024-04-12 00:07:49,111 - mmcls - INFO - Epoch [166][100/272]	lr: 1.000e-06, eta: 0:20:29, time: 0.161, data_time: 0.024, memory: 2002, loss: 1.9104
+2024-04-12 00:08:01,913 - mmcls - INFO - Epoch [166][200/272]	lr: 1.000e-06, eta: 0:20:16, time: 0.128, data_time: 0.002, memory: 2002, loss: 1.8602
+2024-04-12 00:08:15,774 - mmcls - INFO - Epoch(val) [166][34]	accuracy_top-1: 69.8529, accuracy_top-5: 96.3235
+2024-04-12 00:08:37,478 - mmcls - INFO - Epoch [167][100/272]	lr: 1.000e-06, eta: 0:19:53, time: 0.217, data_time: 0.026, memory: 2002, loss: 1.9089
+2024-04-12 00:08:58,542 - mmcls - INFO - Epoch [167][200/272]	lr: 1.000e-06, eta: 0:19:42, time: 0.211, data_time: 0.004, memory: 2002, loss: 1.9220
+2024-04-12 00:09:14,290 - mmcls - INFO - Epoch(val) [167][34]	accuracy_top-1: 69.8529, accuracy_top-5: 96.3235
+2024-04-12 00:09:32,823 - mmcls - INFO - Epoch [168][100/272]	lr: 1.000e-06, eta: 0:19:18, time: 0.185, data_time: 0.025, memory: 2002, loss: 1.9677
+2024-04-12 00:09:47,645 - mmcls - INFO - Epoch [168][200/272]	lr: 1.000e-06, eta: 0:19:06, time: 0.148, data_time: 0.003, memory: 2002, loss: 1.8439
+2024-04-12 00:10:00,652 - mmcls - INFO - Epoch(val) [168][34]	accuracy_top-1: 69.8529, accuracy_top-5: 96.3235
+2024-04-12 00:10:18,238 - mmcls - INFO - Epoch [169][100/272]	lr: 1.000e-06, eta: 0:18:42, time: 0.176, data_time: 0.025, memory: 2002, loss: 1.8635
+2024-04-12 00:10:32,437 - mmcls - INFO - Epoch [169][200/272]	lr: 1.000e-06, eta: 0:18:29, time: 0.142, data_time: 0.003, memory: 2002, loss: 1.9075
+2024-04-12 00:10:44,742 - mmcls - INFO - Epoch(val) [169][34]	accuracy_top-1: 69.8529, accuracy_top-5: 96.3235
+2024-04-12 00:11:01,550 - mmcls - INFO - Epoch [170][100/272]	lr: 1.000e-06, eta: 0:18:06, time: 0.168, data_time: 0.025, memory: 2002, loss: 1.8234
+2024-04-12 00:11:15,532 - mmcls - INFO - Epoch [170][200/272]	lr: 1.000e-06, eta: 0:17:53, time: 0.140, data_time: 0.003, memory: 2002, loss: 1.8900
+2024-04-12 00:11:29,058 - mmcls - INFO - Epoch(val) [170][34]	accuracy_top-1: 69.8529, accuracy_top-5: 96.3235
+2024-04-12 00:11:51,828 - mmcls - INFO - Epoch [171][100/272]	lr: 1.000e-06, eta: 0:17:31, time: 0.227, data_time: 0.026, memory: 2002, loss: 1.8620
+2024-04-12 00:12:13,341 - mmcls - INFO - Epoch [171][200/272]	lr: 1.000e-06, eta: 0:17:19, time: 0.215, data_time: 0.004, memory: 2002, loss: 1.8840
+2024-04-12 00:12:30,710 - mmcls - INFO - Epoch(val) [171][34]	accuracy_top-1: 69.8529, accuracy_top-5: 96.3235
+2024-04-12 00:12:51,568 - mmcls - INFO - Epoch [172][100/272]	lr: 1.000e-06, eta: 0:16:56, time: 0.208, data_time: 0.026, memory: 2002, loss: 1.9210
+2024-04-12 00:13:10,235 - mmcls - INFO - Epoch [172][200/272]	lr: 1.000e-06, eta: 0:16:44, time: 0.187, data_time: 0.004, memory: 2002, loss: 1.8876
+2024-04-12 00:13:25,672 - mmcls - INFO - Epoch(val) [172][34]	accuracy_top-1: 69.8529, accuracy_top-5: 96.3235
+2024-04-12 00:13:46,698 - mmcls - INFO - Epoch [173][100/272]	lr: 1.000e-06, eta: 0:16:21, time: 0.210, data_time: 0.025, memory: 2002, loss: 1.9061
+2024-04-12 00:14:01,650 - mmcls - INFO - Epoch [173][200/272]	lr: 1.000e-06, eta: 0:16:09, time: 0.149, data_time: 0.003, memory: 2002, loss: 1.9231
+2024-04-12 00:14:13,136 - mmcls - INFO - Epoch(val) [173][34]	accuracy_top-1: 69.8529, accuracy_top-5: 96.3235
+2024-04-12 00:14:32,709 - mmcls - INFO - Epoch [174][100/272]	lr: 1.000e-06, eta: 0:15:46, time: 0.196, data_time: 0.025, memory: 2002, loss: 1.8335
+2024-04-12 00:14:47,084 - mmcls - INFO - Epoch [174][200/272]	lr: 1.000e-06, eta: 0:15:33, time: 0.144, data_time: 0.003, memory: 2002, loss: 1.9186
+2024-04-12 00:14:59,354 - mmcls - INFO - Epoch(val) [174][34]	accuracy_top-1: 69.8529, accuracy_top-5: 96.3235
+2024-04-12 00:15:19,266 - mmcls - INFO - Epoch [175][100/272]	lr: 1.000e-06, eta: 0:15:10, time: 0.199, data_time: 0.026, memory: 2002, loss: 1.9149
+2024-04-12 00:15:39,158 - mmcls - INFO - Epoch [175][200/272]	lr: 1.000e-06, eta: 0:14:58, time: 0.199, data_time: 0.003, memory: 2002, loss: 1.8852
+2024-04-12 00:15:51,257 - mmcls - INFO - Epoch(val) [175][34]	accuracy_top-1: 69.1176, accuracy_top-5: 96.3235
+2024-04-12 00:16:10,558 - mmcls - INFO - Epoch [176][100/272]	lr: 1.000e-06, eta: 0:14:35, time: 0.193, data_time: 0.025, memory: 2002, loss: 1.8799
+2024-04-12 00:16:25,717 - mmcls - INFO - Epoch [176][200/272]	lr: 1.000e-06, eta: 0:14:22, time: 0.152, data_time: 0.003, memory: 2002, loss: 1.8329
+2024-04-12 00:16:37,133 - mmcls - INFO - Epoch(val) [176][34]	accuracy_top-1: 69.8529, accuracy_top-5: 96.3235
+2024-04-12 00:16:55,040 - mmcls - INFO - Epoch [177][100/272]	lr: 1.000e-06, eta: 0:13:59, time: 0.179, data_time: 0.025, memory: 2002, loss: 1.8829
+2024-04-12 00:17:12,269 - mmcls - INFO - Epoch [177][200/272]	lr: 1.000e-06, eta: 0:13:47, time: 0.172, data_time: 0.003, memory: 2002, loss: 1.8807
+2024-04-12 00:17:27,453 - mmcls - INFO - Epoch(val) [177][34]	accuracy_top-1: 69.1176, accuracy_top-5: 96.3235
+2024-04-12 00:17:47,713 - mmcls - INFO - Epoch [178][100/272]	lr: 1.000e-06, eta: 0:13:24, time: 0.202, data_time: 0.025, memory: 2002, loss: 1.8564
+2024-04-12 00:18:05,753 - mmcls - INFO - Epoch [178][200/272]	lr: 1.000e-06, eta: 0:13:11, time: 0.180, data_time: 0.003, memory: 2002, loss: 1.9174
+2024-04-12 00:18:17,744 - mmcls - INFO - Epoch(val) [178][34]	accuracy_top-1: 69.8529, accuracy_top-5: 96.3235
+2024-04-12 00:18:36,571 - mmcls - INFO - Epoch [179][100/272]	lr: 1.000e-06, eta: 0:12:49, time: 0.188, data_time: 0.025, memory: 2002, loss: 1.9155
+2024-04-12 00:18:54,083 - mmcls - INFO - Epoch [179][200/272]	lr: 1.000e-06, eta: 0:12:36, time: 0.175, data_time: 0.003, memory: 2002, loss: 1.9500
+2024-04-12 00:19:08,742 - mmcls - INFO - Epoch(val) [179][34]	accuracy_top-1: 69.8529, accuracy_top-5: 96.3235
+2024-04-12 00:19:28,876 - mmcls - INFO - Epoch [180][100/272]	lr: 1.000e-06, eta: 0:12:13, time: 0.201, data_time: 0.026, memory: 2002, loss: 1.8874
+2024-04-12 00:19:44,439 - mmcls - INFO - Epoch [180][200/272]	lr: 1.000e-06, eta: 0:12:00, time: 0.156, data_time: 0.003, memory: 2002, loss: 1.9104
+2024-04-12 00:19:58,197 - mmcls - INFO - Epoch(val) [180][34]	accuracy_top-1: 69.8529, accuracy_top-5: 96.3235
+2024-04-12 00:20:18,685 - mmcls - INFO - Epoch [181][100/272]	lr: 1.000e-06, eta: 0:11:38, time: 0.205, data_time: 0.026, memory: 2002, loss: 1.8814
+2024-04-12 00:20:36,510 - mmcls - INFO - Epoch [181][200/272]	lr: 1.000e-06, eta: 0:11:25, time: 0.178, data_time: 0.003, memory: 2002, loss: 1.9353
+2024-04-12 00:20:50,703 - mmcls - INFO - Epoch(val) [181][34]	accuracy_top-1: 69.8529, accuracy_top-5: 96.3235
+2024-04-12 00:21:10,625 - mmcls - INFO - Epoch [182][100/272]	lr: 1.000e-06, eta: 0:11:02, time: 0.199, data_time: 0.025, memory: 2002, loss: 1.9135
+2024-04-12 00:21:28,810 - mmcls - INFO - Epoch [182][200/272]	lr: 1.000e-06, eta: 0:10:50, time: 0.182, data_time: 0.003, memory: 2002, loss: 1.9179
+2024-04-12 00:21:45,508 - mmcls - INFO - Epoch(val) [182][34]	accuracy_top-1: 69.8529, accuracy_top-5: 96.3235
+2024-04-12 00:22:04,780 - mmcls - INFO - Epoch [183][100/272]	lr: 1.000e-06, eta: 0:10:27, time: 0.193, data_time: 0.025, memory: 2002, loss: 1.9462
+2024-04-12 00:22:21,362 - mmcls - INFO - Epoch [183][200/272]	lr: 1.000e-06, eta: 0:10:14, time: 0.166, data_time: 0.003, memory: 2002, loss: 1.8770
+2024-04-12 00:22:35,067 - mmcls - INFO - Epoch(val) [183][34]	accuracy_top-1: 69.1176, accuracy_top-5: 96.3235
+2024-04-12 00:22:59,008 - mmcls - INFO - Epoch [184][100/272]	lr: 1.000e-06, eta: 0:09:52, time: 0.239, data_time: 0.026, memory: 2002, loss: 1.9120
+2024-04-12 00:23:17,074 - mmcls - INFO - Epoch [184][200/272]	lr: 1.000e-06, eta: 0:09:39, time: 0.181, data_time: 0.004, memory: 2002, loss: 1.8957
+2024-04-12 00:23:31,191 - mmcls - INFO - Epoch(val) [184][34]	accuracy_top-1: 69.1176, accuracy_top-5: 96.3235
+2024-04-12 00:23:50,587 - mmcls - INFO - Epoch [185][100/272]	lr: 1.000e-06, eta: 0:09:16, time: 0.194, data_time: 0.025, memory: 2002, loss: 1.8217
+2024-04-12 00:24:07,898 - mmcls - INFO - Epoch [185][200/272]	lr: 1.000e-06, eta: 0:09:04, time: 0.173, data_time: 0.004, memory: 2002, loss: 1.8993
+2024-04-12 00:24:21,190 - mmcls - INFO - Epoch(val) [185][34]	accuracy_top-1: 69.1176, accuracy_top-5: 96.3235
+2024-04-12 00:24:38,293 - mmcls - INFO - Epoch [186][100/272]	lr: 1.000e-06, eta: 0:08:41, time: 0.171, data_time: 0.025, memory: 2002, loss: 1.9098
+2024-04-12 00:24:54,920 - mmcls - INFO - Epoch [186][200/272]	lr: 1.000e-06, eta: 0:08:28, time: 0.166, data_time: 0.003, memory: 2002, loss: 1.8769
+2024-04-12 00:25:09,748 - mmcls - INFO - Epoch(val) [186][34]	accuracy_top-1: 69.1176, accuracy_top-5: 96.3235
+2024-04-12 00:25:30,129 - mmcls - INFO - Epoch [187][100/272]	lr: 1.000e-06, eta: 0:08:05, time: 0.204, data_time: 0.026, memory: 2002, loss: 1.9510
+2024-04-12 00:25:46,161 - mmcls - INFO - Epoch [187][200/272]	lr: 1.000e-06, eta: 0:07:52, time: 0.160, data_time: 0.004, memory: 2002, loss: 1.8822
+2024-04-12 00:25:59,723 - mmcls - INFO - Epoch(val) [187][34]	accuracy_top-1: 69.1176, accuracy_top-5: 96.3235
+2024-04-12 00:26:23,225 - mmcls - INFO - Epoch [188][100/272]	lr: 1.000e-06, eta: 0:07:30, time: 0.235, data_time: 0.026, memory: 2002, loss: 1.8992
+2024-04-12 00:26:43,454 - mmcls - INFO - Epoch [188][200/272]	lr: 1.000e-06, eta: 0:07:17, time: 0.202, data_time: 0.004, memory: 2002, loss: 1.8924
+2024-04-12 00:26:58,294 - mmcls - INFO - Epoch(val) [188][34]	accuracy_top-1: 69.1176, accuracy_top-5: 96.3235
+2024-04-12 00:27:17,155 - mmcls - INFO - Epoch [189][100/272]	lr: 1.000e-06, eta: 0:06:54, time: 0.188, data_time: 0.026, memory: 2002, loss: 1.9061
+2024-04-12 00:27:33,674 - mmcls - INFO - Epoch [189][200/272]	lr: 1.000e-06, eta: 0:06:41, time: 0.165, data_time: 0.003, memory: 2002, loss: 1.8862
+2024-04-12 00:27:47,155 - mmcls - INFO - Epoch(val) [189][34]	accuracy_top-1: 69.1176, accuracy_top-5: 96.3235
+2024-04-12 00:28:04,195 - mmcls - INFO - Epoch [190][100/272]	lr: 1.000e-06, eta: 0:06:19, time: 0.170, data_time: 0.025, memory: 2002, loss: 1.8942
+2024-04-12 00:28:18,869 - mmcls - INFO - Epoch [190][200/272]	lr: 1.000e-06, eta: 0:06:06, time: 0.147, data_time: 0.003, memory: 2002, loss: 1.9107
+2024-04-12 00:28:30,818 - mmcls - INFO - Epoch(val) [190][34]	accuracy_top-1: 69.8529, accuracy_top-5: 96.3235
+2024-04-12 00:28:50,808 - mmcls - INFO - Epoch [191][100/272]	lr: 1.000e-06, eta: 0:05:43, time: 0.198, data_time: 0.025, memory: 2002, loss: 1.8406
+2024-04-12 00:29:09,238 - mmcls - INFO - Epoch [191][200/272]	lr: 1.000e-06, eta: 0:05:30, time: 0.184, data_time: 0.004, memory: 2002, loss: 1.9246
+2024-04-12 00:29:22,588 - mmcls - INFO - Epoch(val) [191][34]	accuracy_top-1: 69.8529, accuracy_top-5: 96.3235
+2024-04-12 00:29:37,456 - mmcls - INFO - Epoch [192][100/272]	lr: 1.000e-06, eta: 0:05:07, time: 0.149, data_time: 0.024, memory: 2002, loss: 1.8929
+2024-04-12 00:29:57,790 - mmcls - INFO - Epoch [192][200/272]	lr: 1.000e-06, eta: 0:04:54, time: 0.203, data_time: 0.004, memory: 2002, loss: 1.9364
+2024-04-12 00:30:14,937 - mmcls - INFO - Epoch(val) [192][34]	accuracy_top-1: 70.5882, accuracy_top-5: 96.3235
+2024-04-12 00:30:31,729 - mmcls - INFO - Epoch [193][100/272]	lr: 1.000e-06, eta: 0:04:32, time: 0.168, data_time: 0.025, memory: 2002, loss: 1.8821
+2024-04-12 00:30:47,478 - mmcls - INFO - Epoch [193][200/272]	lr: 1.000e-06, eta: 0:04:19, time: 0.157, data_time: 0.003, memory: 2002, loss: 1.9416
+2024-04-12 00:31:03,225 - mmcls - INFO - Epoch(val) [193][34]	accuracy_top-1: 69.8529, accuracy_top-5: 96.3235
+2024-04-12 00:31:23,208 - mmcls - INFO - Epoch [194][100/272]	lr: 1.000e-06, eta: 0:03:56, time: 0.200, data_time: 0.025, memory: 2002, loss: 1.8987
+2024-04-12 00:31:40,066 - mmcls - INFO - Epoch [194][200/272]	lr: 1.000e-06, eta: 0:03:43, time: 0.169, data_time: 0.003, memory: 2002, loss: 1.8451
+2024-04-12 00:31:54,690 - mmcls - INFO - Epoch(val) [194][34]	accuracy_top-1: 69.8529, accuracy_top-5: 96.3235
+2024-04-12 00:32:12,337 - mmcls - INFO - Epoch [195][100/272]	lr: 1.000e-06, eta: 0:03:20, time: 0.176, data_time: 0.025, memory: 2002, loss: 1.8810
+2024-04-12 00:32:27,451 - mmcls - INFO - Epoch [195][200/272]	lr: 1.000e-06, eta: 0:03:07, time: 0.151, data_time: 0.003, memory: 2002, loss: 1.9290
+2024-04-12 00:32:42,959 - mmcls - INFO - Epoch(val) [195][34]	accuracy_top-1: 70.5882, accuracy_top-5: 96.3235
+2024-04-12 00:33:04,622 - mmcls - INFO - Epoch [196][100/272]	lr: 1.000e-06, eta: 0:02:45, time: 0.216, data_time: 0.026, memory: 2002, loss: 1.8410
+2024-04-12 00:33:23,694 - mmcls - INFO - Epoch [196][200/272]	lr: 1.000e-06, eta: 0:02:32, time: 0.191, data_time: 0.004, memory: 2002, loss: 1.8328
+2024-04-12 00:33:39,642 - mmcls - INFO - Epoch(val) [196][34]	accuracy_top-1: 70.5882, accuracy_top-5: 96.3235
+2024-04-12 00:33:58,375 - mmcls - INFO - Epoch [197][100/272]	lr: 1.000e-06, eta: 0:02:09, time: 0.187, data_time: 0.025, memory: 2002, loss: 1.9749
+2024-04-12 00:34:13,930 - mmcls - INFO - Epoch [197][200/272]	lr: 1.000e-06, eta: 0:01:56, time: 0.156, data_time: 0.003, memory: 2002, loss: 1.8363
+2024-04-12 00:34:26,082 - mmcls - INFO - Epoch(val) [197][34]	accuracy_top-1: 70.5882, accuracy_top-5: 96.3235
+2024-04-12 00:34:46,628 - mmcls - INFO - Epoch [198][100/272]	lr: 1.000e-06, eta: 0:01:33, time: 0.205, data_time: 0.026, memory: 2002, loss: 1.8930
+2024-04-12 00:35:02,385 - mmcls - INFO - Epoch [198][200/272]	lr: 1.000e-06, eta: 0:01:20, time: 0.158, data_time: 0.003, memory: 2002, loss: 1.8819
+2024-04-12 00:35:19,145 - mmcls - INFO - Epoch(val) [198][34]	accuracy_top-1: 70.5882, accuracy_top-5: 96.3235
+2024-04-12 00:35:39,547 - mmcls - INFO - Epoch [199][100/272]	lr: 1.000e-06, eta: 0:00:58, time: 0.204, data_time: 0.025, memory: 2002, loss: 1.9066
+2024-04-12 00:35:54,804 - mmcls - INFO - Epoch [199][200/272]	lr: 1.000e-06, eta: 0:00:45, time: 0.153, data_time: 0.003, memory: 2002, loss: 1.7951
+2024-04-12 00:36:08,367 - mmcls - INFO - Epoch(val) [199][34]	accuracy_top-1: 69.8529, accuracy_top-5: 96.3235
+2024-04-12 00:36:26,928 - mmcls - INFO - Epoch [200][100/272]	lr: 1.000e-06, eta: 0:00:22, time: 0.185, data_time: 0.025, memory: 2002, loss: 1.8510
+2024-04-12 00:36:39,142 - mmcls - INFO - Epoch [200][200/272]	lr: 1.000e-06, eta: 0:00:09, time: 0.122, data_time: 0.002, memory: 2002, loss: 1.9174
+2024-04-12 00:36:48,034 - mmcls - INFO - Saving checkpoint at 200 epochs
+2024-04-12 00:36:53,206 - mmcls - INFO - Epoch(val) [200][34]	accuracy_top-1: 69.8529, accuracy_top-5: 96.3235
