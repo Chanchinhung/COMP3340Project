@@ -33,19 +33,19 @@ To train and test all Resnet34 models,
 `./tools/train_resnet34.sh`
 `./tools/test_resnet34.sh`
 
-To train an Swin Transformer model, for example, with batch size 4 and learning rate 0.01:
+To train an Swin Transformer (base224) model, for example, with batch size 4 and learning rate 0.01:
 `python tools/train.py \
 	--config 'configs/swin_transformer/base_224_no_StochasticDepth/lr0.01/swin_base_224_lr0.01_bs4.py' \
 	--work-dir 'output/swin_transformer_no_StochasticDepth/bs4/lr0.01'`
 
-To test an Swin Transformer model,
+To test an Swin Transformer (base224) model,
 `python tools/test.py \
     --config 'configs/swin_transformer/base_224_no_StochasticDepth/lr0.01/swin_base_224_lr0.01_bs4.py' \
     --checkpoint 'output/swin_transformer_no_StochasticDepth/bs4/lr0.01/epoch_200.pth' \
     --out 'output/swin_transformer_no_StochasticDepth/bs4/lr0.01/test.json' \
     --metrics 'accuracy'`
 
-To train and test all Swin Transformer models,
+To train and test all Swin Transformer (base224) models,
 `./tools/train_swin.sh`
 `./tools/test_swin.sh`
 
