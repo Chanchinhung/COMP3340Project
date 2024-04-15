@@ -33,10 +33,12 @@ To train and test all ResNet50 models,
 
 ## Advanced Models
 ## Data Augmentation Techiques
-Then, from the best model, we implemented 4 data augmentation technique. Color jittering aims to reduce the , random vertical flipping with 0.5 probabillity aims to , random rotation by 15 degrees aims to , and random rescaling aims to . We also trained another model where all the above augmentations are applied.
+Then, from the best baseline model (ResNet34 with batch size=4, learning rate=0.1), we implemented 4 data augmentation technique. Random color jittering aims to negate the effect of brightness, contrast, saturation model training; random vertical flipping with 0.5 probabillity aims to negate the effect of orientation of images; similarly, random rotation by 15 degrees aims to negate the effect of orientation of images; and random rescaling aims to negate the effect of image scale. We also trained another model where all the above augmentations are applied.
 
-To train those models, (insert cmd)
-To test those models, use the command ''(insert)
+To train and test all the Data Augmentation models,
+`./tools/train_dataaugmentation.sh`
+`./tools/test_dataaugmentation.sh`
+
 ### Inception Models
 Our project trained Inception models with batch sizes 4, 16 and 64 and learning rates 10^-1, 10^-2, 10^-3 and 10^-4.
 To train an Inception model, for example, with batch size 4 and learning rate 0.1:
