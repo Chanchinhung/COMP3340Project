@@ -3,34 +3,40 @@
 ## Overview
 In this project we first trained 5 sets of baseline models (ResNet18, 34, 50, and VGG 16, 19) with different batch size (4, 16, 64) and learning rate (10^-1, 10^-2, 10^-3) in order to invsetigate the effect of those 2 hyperparameters on models' performance, and identify the best set of hyperparameters for future improvements. 
 
-To train those models, use the command ''(please inserst command here)
-
 It can be assumed that from now on, all command are executed in the terminal under the directory 'COMP3340Project/CNN_Image_Classification_Code' unless otherwise specified.
-
-Then, from the best model, we implemented 4 data augmentation technique. Color jittering aims to reduce the , random vertical flipping with 0.5 probabillity aims to , random rotation by 15 degrees aims to , and random rescaling aims to . We also trained another model where all the above augmentations are applied.
-
-To train those models, (insert cmd)
-To test those models, use the command ''(insert)
 
 ## Baseline Models
 ### Resnet
-To train an Resnet34 model, for example, with batch size 4 and learning rate 0.1:
+To train an ResNet model, for example, ResNet 34 with batch size 4 and learning rate 0.1:
 `python tools/train.py \
 	--config 'configs/resnet/resnet34/lr0.1/resnet34_flowers_bs4.py' \
 	--work-dir 'output/resnet34/bs4/lr0.1'`
 
-To test an Resnet34 model,
+To test the above model,
 `python tools/test.py \
     --config 'configs/resnet/resnet34/lr0.1/resnet34_flowers_bs4.py' \
     --checkpoint 'output/resnet34/bs4/lr0.1/latest.pth' \
     --out 'output/resnet34/bs4/lr0.1/test.json' \
     --metrics 'accuracy'`
 
-To train and test all Resnet34 models,
+To train and test all ResNet34 models,
 `./tools/train_resnet34.sh`
 `./tools/test_resnet34.sh`
 
+To train and test all ResNet18 models,
+`./tools/train_resnet18.sh`
+`./tools/test_resnet18.sh`
+
+To train and test all ResNet50 models,
+`./tools/train_resnet50.sh`
+`./tools/test_resnet50.sh`
+
 ## Advanced Models
+## Data Augmentation Techiques
+Then, from the best model, we implemented 4 data augmentation technique. Color jittering aims to reduce the , random vertical flipping with 0.5 probabillity aims to , random rotation by 15 degrees aims to , and random rescaling aims to . We also trained another model where all the above augmentations are applied.
+
+To train those models, (insert cmd)
+To test those models, use the command ''(insert)
 ### Inception Models
 Our project trained Inception models with batch sizes 4, 16 and 64 and learning rates 10^-1, 10^-2, 10^-3 and 10^-4.
 To train an Inception model, for example, with batch size 4 and learning rate 0.1:
