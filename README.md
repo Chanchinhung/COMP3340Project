@@ -6,7 +6,7 @@ In this project we first trained 5 sets of baseline models (ResNet18, 34, 50, an
 It can be assumed that from now on, all command are executed in the terminal under the directory 'COMP3340Project/CNN_Image_Classification_Code' unless otherwise specified.
 
 ## Baseline Models
-### Resnet
+### ResNet
 To train an ResNet model, for example, ResNet 34 with batch size 4 and learning rate 0.1:
 `python tools/train.py \
 	--config 'configs/resnet/resnet34/lr0.1/resnet34_flowers_bs4.py' \
