@@ -3,7 +3,7 @@ echo "Testing vgg16_bs4_lr0.1"
 python tools/test.py \
     --config 'configs/vgg/vgg16/lr0.1/vgg16_flowers_bs4.py' \
     --checkpoint 'output/vgg16/bs4/lr0.1/latest.pth' \
-    --out 'output18/bs4/lr0.1/test.json' \
+    --out 'output/bs4/lr0.1/test.json' \
     --metrics 'accuracy'
 
 echo "Testing vgg16_bs4_lr0.01"
