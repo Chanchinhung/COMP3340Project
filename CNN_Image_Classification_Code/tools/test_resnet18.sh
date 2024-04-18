@@ -3,7 +3,7 @@ echo "Testing resnet18_bs4_lr0.1"
 python tools/test.py \
     --config 'configs/resnet/resnet18/lr0.1/resnet18_flowers_bs4.py' \
     --checkpoint 'output/resnet18/bs4/lr0.1/latest.pth' \
-    --out 'output18/bs4/lr0.1/test.json' \
+    --out 'output/resnet18/bs4/lr0.1/test.json' \
     --metrics 'accuracy'
 
 echo "Testing resnet18_bs4_lr0.01"
