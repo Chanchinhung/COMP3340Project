@@ -5,6 +5,18 @@ In this project we first trained 5 sets of baseline models (ResNet18, 34, 50, an
 
 It can be assumed that from now on, all command are executed in the terminal under the directory 'COMP3340Project/CNN_Image_Classification_Code' unless otherwise specified.
 
+## Environment Installation
+Use the following commands to configure the required environment:
+
+conda create -n mmcls python=3.7 -y
+conda activate mmcls
+conda install pytorch==1.7.1 torchvision==0.8.2 torchaudio==0.7.2 cudatoolkit=10.1 -c pytorch
+pip install mmcv==1.5.0
+pip install mmcv-full==1.5.0
+cd CNN_Image_Classification_Code
+pip install -e .
+pip install yapf==0.40.1
+
 ## Baseline Models
 ### ResNet
 To train an ResNet model, for example, ResNet 34 with batch size 4 and learning rate 0.1:
@@ -34,6 +46,12 @@ To train and test all ResNet50 models,
 To train and test all VGG16 models,
 `./tools/train_vgg16.sh`
 `./tools/test_vgg16.sh`
+
+To train and test all VGG19 models,
+`./tools/train_vgg19.sh`
+`./tools/test_vgg19.sh`
+
+The expected results will be displayed in terminal and saved in log files when running the shell scripts.
 
 ## Advanced Models
 ## Data Augmentation Techiques
