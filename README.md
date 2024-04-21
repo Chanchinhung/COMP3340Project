@@ -51,6 +51,10 @@ To train and test all VGG19 models,
 `./tools/train_vgg19.sh`
 `./tools/test_vgg19.sh`
 
+To train and test all VGG19 models,
+`./tools/train_vit.sh`
+`./tools/test_vit.sh`
+
 The expected results will be displayed in terminal and saved in log files when running the shell scripts.
 
 ## Advanced Models
