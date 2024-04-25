@@ -1,7 +1,7 @@
 # COMP3340 Project Repository
 
 ## Overview
-In this project we first trained 5 sets of baseline models (ResNet18, 34, 50, and VGG 16, 19) with different batch size (4, 16, 64) and learning rate (10^-1, 10^-2, 10^-3) in order to invsetigate the effect of those 2 hyperparameters on models' performance, and identify the best set of hyperparameters for future improvements. 
+In this project we first trained 5 sets of baseline models (ResNet18, 34, 50, and VGG 16, 19) with different batch size (4, 16, 64) and learning rate (10^-1, 10^-2, 10^-3) in order to investigate the effect of those 2 hyperparameters on models' performance, and identify the best set of hyperparameters for future improvements. 
 
 It can be assumed that from now on, all command are executed in the terminal under the directory 'COMP3340Project/CNN_Image_Classification_Code' unless otherwise specified.
 
