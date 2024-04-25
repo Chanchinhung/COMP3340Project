@@ -1,7 +1,7 @@
 # COMP3340 Project Repository
 
 ## Overview
-In this project we first trained 5 sets of baseline models (ResNet18, 34, 50, and VGG 16, 19) with different batch size (4, 16, 64) and learning rate (10^-1, 10^-2, 10^-3) in order to invsetigate the effect of those 2 hyperparameters on models' performance, and identify the best set of hyperparameters for future improvements. 
+In this project we first trained 5 sets of baseline models (ResNet18, 34, 50, and VGG 16, 19) with different batch size (4, 16, 64) and learning rate (10^-1, 10^-2, 10^-3) in order to investigate the effect of those 2 hyperparameters on models' performance, and identify the best set of hyperparameters for future improvements. 
 
 It can be assumed that from now on, all command are executed in the terminal under the directory 'COMP3340Project/CNN_Image_Classification_Code' unless otherwise specified.
 
@@ -50,10 +50,6 @@ To train and test all VGG16 models,
 To train and test all VGG19 models,
 `./tools/train_vgg19.sh`
 `./tools/test_vgg19.sh`
-
-To train and test all VGG19 models,
-`./tools/train_vit.sh`
-`./tools/test_vit.sh`
 
 The expected results will be displayed in terminal and saved in log files when running the shell scripts.
 
@@ -129,8 +125,24 @@ to test that:
     --metrics 'accuracy'`
 
 ## Plotting Graphs
+For this command to work properly, this should be executed in the terminal under the directory 'COMP3340Project/CNN_Image_Classification_Code/output'
+
 To plot the validation accuracy vs number of epoch,
+
 `python ploting_validation_accuracy.py \
-    path/of/model1.log.json [Optional: path/of/model2.log.json] \
-    'legend of model 1' 'Optional: legend of model 2' \
-    path/of/output/file`
+    --json 'path/of/model1.log.json' [Optional: 'path/of/model{2..n}.log.json'] \
+    --legend 'legend of model 1' [Optional: 'legend of model {2..n}'] \
+    --output 'path/of/output/file'`
+
+Eg. 
+`python ploting_validation_accuracy.py \
+    --json 'resnet34/bs4/lr0.1/20240225_234858.log.json' 'resnet34/bs16/lr0.1/20240226_005436.log.json' 'resnet34/bs64/lr0.1/20240226_013725.log.json’ \
+    --legend 'bs4' 'bs16' 'bs64' \
+    --output 'resnet34_lr0.1.pdf'`
+
+If you don't add '.pdf' in --output then it will be a PNG file
+
+Note that 1. maximum number of json files and legends are 20 respectively 2. Number of json files and legends must match 3. All --json --legend --output must be provided
+
+## Expected Testing Accuracies
+Expected Testing accuracies can be found in COMP3340 Expected Testing Accuracy of All models - Sheet1.pdf
