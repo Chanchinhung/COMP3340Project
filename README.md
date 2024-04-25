@@ -152,3 +152,5 @@ If you don't add '.pdf' in --output then it will be a PNG file
 
 Note that 1. maximum number of json files and legends are 20 respectively 2. Number of json files and legends must match 3. All --json --legend --output must be provided
 
+##Expected Testing Accuracies
+All the expected testing accuracies are in 'COMP3340 Expected Testing Accuracy of All models - Sheet1.pdf'
