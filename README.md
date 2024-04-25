@@ -1,7 +1,7 @@
 # COMP3340 Project Repository
 
 ## Overview
-In this project we first trained 5 sets of baseline models (ResNet18, 34, 50, and VGG 16, 19) with different batch size (4, 16, 64) and learning rate (10^-1, 10^-2, 10^-3) in order to investigate the effect of those 2 hyperparameters on models' performance, and identify the best set of hyperparameters for future improvements. 
+In this project we first trained 5 sets of baseline models (ResNet18, 34, 50, and VGG 16, 19) with different batch size (4, 16, 64) and learning rate (10^-1, 10^-2, 10^-3) in order to invsetigate the effect of those 2 hyperparameters on models' performance, and identify the best set of hyperparameters for future improvements. 
 
 It can be assumed that from now on, all command are executed in the terminal under the directory 'COMP3340Project/CNN_Image_Classification_Code' unless otherwise specified.
 
@@ -12,6 +12,7 @@ conda create -n mmcls python=3.7 -y
 conda activate mmcls
 conda install pytorch==1.7.1 torchvision==0.8.2 torchaudio==0.7.2 cudatoolkit=10.1 -c pytorch
 pip install mmcv==1.5.0
+python -m pip install paddlepaddle-gpu==2.5.2 -i https://mirror.baidu.com/pypi/simple
 pip install mmcv-full==1.5.0
 cd CNN_Image_Classification_Code
 pip install -e .
@@ -79,6 +80,13 @@ To train and test all Inception models,
 `./tools/train_inception.sh`
 `./tools/test_inception`
 
+### DCNv2 Models
+To train a DCNv2-integrated Resnet50 model, first add desnet_mem.py to the 'data' directory, then run `cd data`. 
+After that run `python desnet_mem.py` and you will be prompted to enter half of batch size and learning rate. After entering the values, the training will start automatically.
+
+To test a DCNv2-integrated Resnet50 model,
+run `python desnet_test.py`, then enter the testing batch size. After that, enter the model batch size and learning rate to specify the target model. 
+
 ### Swin Transformer Models
 To train an Swin Transformer model (base224), for example, with batch size 4 and learning rate 0.01:
 `python tools/train.py \
@@ -144,5 +152,3 @@ If you don't add '.pdf' in --output then it will be a PNG file
 
 Note that 1. maximum number of json files and legends are 20 respectively 2. Number of json files and legends must match 3. All --json --legend --output must be provided
 
-## Expected Testing Accuracies
-Expected Testing accuracies can be found in 'COMP3340 Expected Testing Accuracy of All models - Sheet1.pdf'
