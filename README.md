@@ -19,7 +19,7 @@ pip install -e .
 pip install yapf==0.40.1
 
 ## Baseline Models
-### ResNet
+### ResNet and VGG
 To train an ResNet model, for example, ResNet 34 with batch size 4 and learning rate 0.1:
 `python tools/train.py \
 	--config 'configs/resnet/resnet34/lr0.1/resnet34_flowers_bs4.py' \
@@ -44,7 +44,6 @@ To train and test all ResNet50 models,
 `./tools/train_resnet50.sh`
 `./tools/test_resnet50.sh`
 
-### VGG
 To train and test all VGG16 models,
 `./tools/train_vgg16.sh`
 `./tools/test_vgg16.sh`
