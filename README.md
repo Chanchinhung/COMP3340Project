@@ -55,7 +55,7 @@ To train and test all VGG19 models,
 The expected results will be displayed in terminal and saved in log files when running the shell scripts.
 
 ## Advanced Models
-## Data Augmentation Techiques
+### Data Augmentation Techiques
 Then, from the best baseline model (ResNet34 with batch size=4, learning rate=0.1), we implemented 4 data augmentation technique. Random color jittering aims to negate the effect of brightness, contrast, saturation model training; random vertical flipping with 0.5 probabillity aims to negate the effect of orientation of images; similarly, random rotation by 15 degrees aims to negate the effect of orientation of images; and random rescaling aims to negate the effect of image scale. We also trained another model where all the above augmentations are applied.
 
 To train and test all the Data Augmentation models,
