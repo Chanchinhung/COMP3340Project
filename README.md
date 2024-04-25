@@ -19,9 +19,6 @@ pip install -e .
 pip install yapf==0.40.1
 
 ##System Info
-
-2024-02-25 11:37:11,736 - mmcls - INFO - Environment info:
-------------------------------------------------------------
 sys.platform: linux
 Python: 3.7.16 (default, Jan 17 2023, 22:20:44) [GCC 11.2.0]
 CUDA available: True
