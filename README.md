@@ -19,6 +19,7 @@ pip install -e .
 pip install yapf==0.40.1
 
 ##System Info
+
 2024-02-25 11:37:11,736 - mmcls - INFO - Environment info:
 ------------------------------------------------------------
 sys.platform: linux
