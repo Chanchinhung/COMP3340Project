@@ -44,6 +44,7 @@ To train and test all ResNet50 models,
 `./tools/train_resnet50.sh`
 `./tools/test_resnet50.sh`
 
+### VGG
 To train and test all VGG16 models,
 `./tools/train_vgg16.sh`
 `./tools/test_vgg16.sh`
