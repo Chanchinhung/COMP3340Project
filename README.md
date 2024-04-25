@@ -8,7 +8,7 @@ It can be assumed that from now on, all command are executed in the terminal und
 ## Environment Installation
 Use the following commands to configure the required environment:
 
-conda create -n mmcls python=3.7 -y
+conda create -n mmcls python=3.7 -y\n
 conda activate mmcls
 conda install pytorch==1.7.1 torchvision==0.8.2 torchaudio==0.7.2 cudatoolkit=10.1 -c pytorch
 pip install mmcv==1.5.0
